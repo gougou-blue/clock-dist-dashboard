@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Global Clock Distribution 0p5 Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">ACTIVE VIEW: 0p5 READINESS</p>
+      <h1>Global Clock Distribution Dashboard</h1>
+    </div>
+    <div class="header-meta">
+      <span id="generatedAt">Last updated: loading</span>
+      <span id="finishState" class="status-pill status-Gray">No Data</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="deliverable-band" aria-label="Deliverable summary">
+      <div id="deliverableCards" class="deliverable-grid"></div>
+      <div id="deliverableDetails" class="deliverable-details" hidden></div>
+    </section>
+
+    <section class="summary-band" aria-label="Program summary">
+      <div id="summaryCards" class="card-grid"></div>
+    </section>
+
+    <section class="toolbar-band" aria-label="Dashboard controls">
+      <div class="segmented-control" role="tablist" aria-label="Dashboard view">
+        <button class="tab-button is-active" data-view="overview" role="tab" aria-selected="true">Overview</button>
+        <button class="tab-button" data-view="blockers" role="tab" aria-selected="false">Blockers</button>
+        <button class="tab-button" data-view="partitions" role="tab" aria-selected="false">Partitions</button>
+      </div>
+      <label class="filter-control">
+        <span>Filter</span>
+        <input id="searchInput" type="search" placeholder="clock, partition, metric">
+      </label>
+    </section>
+
+    <section id="overviewView" class="dashboard-view is-active" aria-label="Overview">
+      <div class="section-heading">
+        <h2>Known Clock-Partition Readiness</h2>
+        <span id="pairCount"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Clock</th>
+              <th>Partition</th>
+              <th>Status</th>
+              <th>CB2</th>
+              <th>MCSS</th>
+              <th>Progress</th>
+              <th>Quality</th>
+              <th>Release</th>
+              <th>Freshness</th>
+            </tr>
+          </thead>
+          <tbody id="matrixRows"></tbody>
+        </table>
+      </div>
+
+      <div class="section-heading section-heading-spaced">
+        <h2>NWPNIO Partition Inventory By SubFC</h2>
+        <span id="inventoryCount"></span>
+      </div>
+      <div id="inventoryGroups" class="subfc-groups"></div>
+    </section>
+
+    <section id="blockersView" class="dashboard-view" aria-label="Blocking issues">
+      <div class="section-heading">
+        <h2>Blocking Issues</h2>
+        <span id="blockerCount"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Deliverable</th>
+              <th>Clock</th>
+              <th>Partition</th>
+              <th>Metric</th>
+              <th>Value</th>
+              <th>Target</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody id="blockerRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="partitionsView" class="dashboard-view" aria-label="Partition drilldown">
+      <div class="section-heading">
+        <h2>Partition Drilldown</h2>
+        <span id="partitionCount"></span>
+      </div>
+      <div id="partitionPanels" class="detail-grid"></div>
+    </section>
+  </main>
+
+  <template id="statusTemplate">
+    <span class="status-chip"><span class="status-dot"></span><span class="status-label"></span></span>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>

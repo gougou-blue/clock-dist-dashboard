@@ -1,0 +1,986 @@
+{
+  "program": "NWPNIO",
+  "milestone": "0p5",
+  "partitions": [
+    {
+      "partition": "pard2d1uladda0",
+      "subfc": "NORTHCAP/D2D1",
+      "active": true
+    },
+    {
+      "partition": "pard2d1uladda1",
+      "subfc": "NORTHCAP/D2D1",
+      "active": true
+    },
+    {
+      "partition": "pard2d1misc",
+      "subfc": "NORTHCAP/D2D1",
+      "active": true
+    },
+    {
+      "partition": "pard2d1chnl",
+      "subfc": "NORTHCAP/D2D1",
+      "active": true
+    },
+    {
+      "partition": "parmiocxlrx_uio_0",
+      "subfc": "NORTHCAP/UIO",
+      "active": true
+    },
+    {
+      "partition": "parmiocxltx_uio_0",
+      "subfc": "NORTHCAP/UIO",
+      "active": true
+    },
+    {
+      "partition": "parmioasf_uio_0",
+      "subfc": "NORTHCAP/UIO",
+      "active": true
+    },
+    {
+      "partition": "parmiomisc_uio_0",
+      "subfc": "NORTHCAP/UIO",
+      "active": true
+    },
+    {
+      "partition": "parmiopcie6trcore_uio_0",
+      "subfc": "NORTHCAP/UIO",
+      "active": true
+    },
+    {
+      "partition": "parmiopcie6tridelldp_uio_0",
+      "subfc": "NORTHCAP/UIO",
+      "active": true
+    },
+    {
+      "partition": "parmiopcie6ttcore_uio_0",
+      "subfc": "NORTHCAP/UIO",
+      "active": true
+    },
+    {
+      "partition": "parmiopcie6ttidecee_uio_0",
+      "subfc": "NORTHCAP/UIO",
+      "active": true
+    },
+    {
+      "partition": "parmiostaticmux_uio_0",
+      "subfc": "NORTHCAP/UIO",
+      "active": true
+    },
+    {
+      "partition": "parmioula_uio_0",
+      "subfc": "NORTHCAP/UIO",
+      "active": true
+    },
+    {
+      "partition": "parmiohap_uio_0",
+      "subfc": "NORTHCAP/UIO",
+      "active": true
+    },
+    {
+      "partition": "parmioiommu_uio_0",
+      "subfc": "NORTHCAP/UIO/IOMMU",
+      "active": true
+    },
+    {
+      "partition": "parmiofblprxfcrarbmux_uio_1",
+      "subfc": "NORTHCAP/UIO_E",
+      "active": true
+    },
+    {
+      "partition": "parmiofblptx_uio_1",
+      "subfc": "NORTHCAP/UIO_E",
+      "active": true
+    },
+    {
+      "partition": "parmiofblpvnpipeac_uio_1",
+      "subfc": "NORTHCAP/UIO_E",
+      "active": true
+    },
+    {
+      "partition": "parmioasf_uio_1",
+      "subfc": "NORTHCAP/UIO_E",
+      "active": true
+    },
+    {
+      "partition": "parmiomisc_uio_1",
+      "subfc": "NORTHCAP/UIO_E",
+      "active": true
+    },
+    {
+      "partition": "parmiopcie6ttidecee_uio_1",
+      "subfc": "NORTHCAP/UIO_E",
+      "active": true
+    },
+    {
+      "partition": "parmioula_uio_1",
+      "subfc": "NORTHCAP/UIO_E",
+      "active": true
+    },
+    {
+      "partition": "parsocmiofivrmisc_e",
+      "subfc": "NORTHCAP/UIO_E",
+      "active": true
+    },
+    {
+      "partition": "parmiofblprxfcrarbmux",
+      "subfc": "NORTHCAP/UIO",
+      "active": true
+    },
+    {
+      "partition": "parmiofblptx",
+      "subfc": "NORTHCAP/UIO",
+      "active": true
+    },
+    {
+      "partition": "parmiofblpvnpipeac_uio_0",
+      "subfc": "NORTHCAP/UIO",
+      "active": true
+    },
+    {
+      "partition": "parmioitc_uio_0",
+      "subfc": "NORTHCAP/UIO/HIOP",
+      "active": true
+    },
+    {
+      "partition": "parmiocpc_uio_0",
+      "subfc": "NORTHCAP/UIO/HIOP",
+      "active": true
+    },
+    {
+      "partition": "parmiootc_uio_0",
+      "subfc": "NORTHCAP/UIO/HIOP",
+      "active": true
+    },
+    {
+      "partition": "parsocmiofivrmisc",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "pard2dinf0w",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "pard2dinf1w",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "pard2dinf2w",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "pard2dch0",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "pard2dch1",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "parpciegen4top",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "parpsf2",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "pard2dinf0",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "pard2dinf1e",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "pard2dinf2e",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "parmioinf1e",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "parmioinf2e",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "parmioinf3e",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "parmioinf1w",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "parmioinf2w",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "parmioinf3w",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "parmioinf0w",
+      "subfc": "NORTHCAP",
+      "active": true
+    },
+    {
+      "partition": "parmccore",
+      "subfc": "MEMTOP/MEMSTACK/MC_CLUSTER",
+      "active": true
+    },
+    {
+      "partition": "parmcmse",
+      "subfc": "MEMTOP/MEMSTACK/MC_CLUSTER",
+      "active": true
+    },
+    {
+      "partition": "parmcmisc",
+      "subfc": "MEMTOP/MEMSTACK/MC_CLUSTER",
+      "active": true
+    },
+    {
+      "partition": "parmemdfi0",
+      "subfc": "MEMTOP/MEMSTACK0",
+      "active": true
+    },
+    {
+      "partition": "parmemdfi1",
+      "subfc": "MEMTOP/MEMSTACK1",
+      "active": true
+    },
+    {
+      "partition": "parmemdfi2",
+      "subfc": "MEMTOP/MEMSTACK2",
+      "active": true
+    },
+    {
+      "partition": "parmemdfi3",
+      "subfc": "MEMTOP/MEMSTACK3",
+      "active": true
+    },
+    {
+      "partition": "parmemphy",
+      "subfc": "MEMTOP/MEMSTACK",
+      "active": true
+    },
+    {
+      "partition": "parmemsram",
+      "subfc": "MEMTOP/MEMSTACK",
+      "active": true
+    },
+    {
+      "partition": "pardfd",
+      "subfc": "MEMTOP",
+      "active": true
+    },
+    {
+      "partition": "parscfhaasf",
+      "subfc": "MEMTOP/MEMSCF",
+      "active": true
+    },
+    {
+      "partition": "parscfhsf",
+      "subfc": "MEMTOP/MEMSCF",
+      "active": true
+    },
+    {
+      "partition": "parscfmemmisc",
+      "subfc": "MEMTOP/MEMSCF",
+      "active": true
+    },
+    {
+      "partition": "parscfmvf",
+      "subfc": "MEMTOP/MEMSCF",
+      "active": true
+    },
+    {
+      "partition": "parscfcmsdummy",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscfcrsmem",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parubrd2dch",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscfmemch0n",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscfmemch1n",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscfmemch2n",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscfmemch3n",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscfmemch0s",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscfmemch1s",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscfmemch2s",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscfmemch3s",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscfmemch4",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscfmemch5",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscftqcab",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscfsasfrx2x",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscfubrd2d",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscfcrsubrcab",
+      "subfc": "SCF/SCF_COMMON",
+      "active": true
+    },
+    {
+      "partition": "parscfcamisc",
+      "subfc": "SCF/SCFIO",
+      "active": true
+    },
+    {
+      "partition": "parscfcrsp2p",
+      "subfc": "SCF/SCFIO",
+      "active": true
+    },
+    {
+      "partition": "parscfmeminf0e",
+      "subfc": "SCF/SCFMEME",
+      "active": true
+    },
+    {
+      "partition": "parscfmeminf1e",
+      "subfc": "SCF/SCFMEME",
+      "active": true
+    },
+    {
+      "partition": "parscfmeminf2e",
+      "subfc": "SCF/SCFMEME",
+      "active": true
+    },
+    {
+      "partition": "parscfmeminf3e",
+      "subfc": "SCF/SCFMEME",
+      "active": true
+    },
+    {
+      "partition": "parscfmeminffivr0e",
+      "subfc": "SCF/SCFMEME",
+      "active": true
+    },
+    {
+      "partition": "parscfmeminffivr1e",
+      "subfc": "SCF/SCFMEME",
+      "active": true
+    },
+    {
+      "partition": "parscfmeminffivr2e",
+      "subfc": "SCF/SCFMEME",
+      "active": true
+    },
+    {
+      "partition": "parscfmeminf0w",
+      "subfc": "SCF/SCFMEMW",
+      "active": true
+    },
+    {
+      "partition": "parscfmeminf1w",
+      "subfc": "SCF/SCFMEMW",
+      "active": true
+    },
+    {
+      "partition": "parscfmeminf2w",
+      "subfc": "SCF/SCFMEMW",
+      "active": true
+    },
+    {
+      "partition": "parscfmeminf3w",
+      "subfc": "SCF/SCFMEMW",
+      "active": true
+    },
+    {
+      "partition": "parscfmeminffivr0w",
+      "subfc": "SCF/SCFMEMW",
+      "active": true
+    },
+    {
+      "partition": "parscfmeminffivr1w",
+      "subfc": "SCF/SCFMEMW",
+      "active": true
+    },
+    {
+      "partition": "parscfmeminffivr2w",
+      "subfc": "SCF/SCFMEMW",
+      "active": true
+    },
+    {
+      "partition": "parscfscatopllcsf0",
+      "subfc": "SCF/CATILE",
+      "active": true
+    },
+    {
+      "partition": "parscfscatopllcsf1",
+      "subfc": "SCF/CATILE",
+      "active": true
+    },
+    {
+      "partition": "parscfubrsca",
+      "subfc": "SCF/CATILE",
+      "active": true
+    },
+    {
+      "partition": "parscfcms2xcrs2x",
+      "subfc": "SCF",
+      "active": true
+    },
+    {
+      "partition": "parcachnl",
+      "subfc": "SCF",
+      "active": true
+    },
+    {
+      "partition": "parscfubruiodatatype1",
+      "subfc": "SCF",
+      "active": true
+    },
+    {
+      "partition": "parscfubruioadaktype1",
+      "subfc": "SCF",
+      "active": true
+    },
+    {
+      "partition": "parcubrmioch",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parcd2dufich0w",
+      "subfc": "SCF/CENTERW",
+      "active": true
+    },
+    {
+      "partition": "parcd2dufich1w",
+      "subfc": "SCF/CENTERW",
+      "active": true
+    },
+    {
+      "partition": "parcinf7w",
+      "subfc": "SCF/CENTERW",
+      "active": true
+    },
+    {
+      "partition": "parscfioinf0w",
+      "subfc": "SCF/CENTERW",
+      "active": true
+    },
+    {
+      "partition": "parscfioinf1w",
+      "subfc": "SCF/CENTERW",
+      "active": true
+    },
+    {
+      "partition": "parscfioinf2w",
+      "subfc": "SCF/CENTERW",
+      "active": true
+    },
+    {
+      "partition": "parcinf5w",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "paraccasf",
+      "subfc": "SCF/CENTER_MID",
+      "active": true
+    },
+    {
+      "partition": "paraccchassis",
+      "subfc": "SCF/CENTER_MID",
+      "active": true
+    },
+    {
+      "partition": "paracchap",
+      "subfc": "SCF/CENTER_MID",
+      "active": true
+    },
+    {
+      "partition": "paracciommu ",
+      "subfc": "SCF/CENTER_MID",
+      "active": true
+    },
+    {
+      "partition": "parpsf0npktam",
+      "subfc": "SCF/CENTER_MID",
+      "active": true
+    },
+    {
+      "partition": "paruboxspk",
+      "subfc": "SCF/CENTER_MID",
+      "active": true
+    },
+    {
+      "partition": "parpsf1",
+      "subfc": "SCF/CENTER_MID",
+      "active": true
+    },
+    {
+      "partition": "parcinffivrw",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parcinffivre",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parcinf0",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parcinf1",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parcinf2",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parcinf3",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parcinf4",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parpla",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parcd2dufich0e",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parcd2dufich1e",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parcinf7e",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parscfioinf0e",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parscfioinf1e",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parscfioinf2e",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parcinf5e",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parcd2dtq",
+      "subfc": "SCF/CENTER_MID",
+      "active": true
+    },
+    {
+      "partition": "parscftqio",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parscftqp2p",
+      "subfc": "SCF/CENTER_MID",
+      "active": true
+    },
+    {
+      "partition": "parscfubruiodatatype2 ",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parscfubruioadaktype2",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "parscfcrsuio",
+      "subfc": "SCF/CENTER",
+      "active": true
+    },
+    {
+      "partition": "paraccitc",
+      "subfc": "SCF/CENTER_MID/HIOP",
+      "active": true
+    },
+    {
+      "partition": "paraccotc",
+      "subfc": "SCF/CENTER_MID/HIOP",
+      "active": true
+    },
+    {
+      "partition": "paracccpc",
+      "subfc": "SCF/CENTER_MID/HIOP",
+      "active": true
+    },
+    {
+      "partition": "pargpio1p8",
+      "subfc": "SOUTHCAP/SOUTHCAP0",
+      "active": true
+    },
+    {
+      "partition": "pargpios5",
+      "subfc": "SOUTHCAP/SOUTHCAP0",
+      "active": true
+    },
+    {
+      "partition": "pars3m",
+      "subfc": "SOUTHCAP/SOUTHCAP0",
+      "active": true
+    },
+    {
+      "partition": "parrclk",
+      "subfc": "SOUTHCAP/SOUTHCAP0",
+      "active": true
+    },
+    {
+      "partition": "parhwrsfuse",
+      "subfc": "SOUTHCAP/SOUTHCAP0",
+      "active": true
+    },
+    {
+      "partition": "parocs",
+      "subfc": "SOUTHCAP/SOUTHCAP0",
+      "active": true
+    },
+    {
+      "partition": "parcgu",
+      "subfc": "SOUTHCAP/SOUTHCAP0",
+      "active": true
+    },
+    {
+      "partition": "paridfttop",
+      "subfc": "SOUTHCAP/SOUTHCAP0",
+      "active": true
+    },
+    {
+      "partition": "parswinf0",
+      "subfc": "SOUTHCAP/SOUTHCAP0",
+      "active": true
+    },
+    {
+      "partition": "parswinf1",
+      "subfc": "SOUTHCAP/SOUTHCAP0",
+      "active": true
+    },
+    {
+      "partition": "parswinf2",
+      "subfc": "SOUTHCAP/SOUTHCAP0",
+      "active": true
+    },
+    {
+      "partition": "pargpios0",
+      "subfc": "SOUTHCAP/SOUTHCAP1",
+      "active": true
+    },
+    {
+      "partition": "pargpiod2d",
+      "subfc": "SOUTHCAP/SOUTHCAP1",
+      "active": true
+    },
+    {
+      "partition": "paroobip",
+      "subfc": "SOUTHCAP/SOUTHCAP1",
+      "active": true
+    },
+    {
+      "partition": "paroobmsmram",
+      "subfc": "SOUTHCAP/SOUTHCAP1",
+      "active": true
+    },
+    {
+      "partition": "parpunit",
+      "subfc": "SOUTHCAP/SOUTHCAP1",
+      "active": true
+    },
+    {
+      "partition": "parfws",
+      "subfc": "SOUTHCAP/SOUTHCAP1",
+      "active": true
+    },
+    {
+      "partition": "parseinf0",
+      "subfc": "SOUTHCAP/SOUTHCAP1",
+      "active": true
+    },
+    {
+      "partition": "parseinf1",
+      "subfc": "SOUTHCAP/SOUTHCAP1",
+      "active": true
+    },
+    {
+      "partition": "parseinf2",
+      "subfc": "SOUTHCAP/SOUTHCAP1",
+      "active": true
+    },
+    {
+      "partition": "parsocrasip",
+      "subfc": "SOUTHCAP/SOUTHCAP1",
+      "active": true
+    },
+    {
+      "partition": "parcabamaflop",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabpwba *",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabama",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabcit",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabpwbac",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabubrchi",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabcrs4x",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabubrcab",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabhma",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabmiscw",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabmisce",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabinf00",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabinf01",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabinf02",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabinf03",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabinffivr",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabinf10",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabinf11",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabinf21w",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabinf22w",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabinf21e",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabinf22e",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabinf23w",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parcabinf23e",
+      "subfc": "SOUTHCAP/CAB",
+      "active": true
+    },
+    {
+      "partition": "parc2cinfra",
+      "subfc": "SOUTHCAP/C2C",
+      "active": true
+    },
+    {
+      "partition": "parc2cscbra",
+      "subfc": "SOUTHCAP/C2C",
+      "active": true
+    },
+    {
+      "partition": "parc2cscbha",
+      "subfc": "SOUTHCAP/C2C",
+      "active": true
+    },
+    {
+      "partition": "parc2cmhub",
+      "subfc": "SOUTHCAP/C2C",
+      "active": true
+    },
+    {
+      "partition": "parc2clink",
+      "subfc": "SOUTHCAP/C2C",
+      "active": true
+    },
+    {
+      "partition": "parc2chip",
+      "subfc": "SOUTHCAP/C2C",
+      "active": true
+    },
+    {
+      "partition": "parc2cchanne",
+      "subfc": "SOUTHCAP/C2C",
+      "active": true
+    },
+    {
+      "partition": "parc2cchannw",
+      "subfc": "SOUTHCAP/C2C",
+      "active": true
+    },
+    {
+      "partition": "c2c09",
+      "subfc": "SOUTHCAP/C2C",
+      "active": true
+    },
+    {
+      "partition": "c2c10",
+      "subfc": "SOUTHCAP/C2C",
+      "active": true
+    }
+  ]
+}

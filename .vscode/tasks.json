@@ -1,0 +1,19 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build Clock Dashboard Data",
+			"type": "shell",
+			"command": "C:/Program Files/Python314/python.exe",
+			"args": [
+				"-m",
+				"dashboard.main",
+				"--output",
+				"public/data/latest.json"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}
