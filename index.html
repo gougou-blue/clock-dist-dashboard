@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CB2 / MCSS Clock Distribution Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ─── Top bar ──────────────────────────────────────────────── -->
+<header class="topbar">
+  <div class="topbar-logo" aria-hidden="true">⏱</div>
+  <div>
+    <div class="topbar-title">Clock Distribution Dashboard</div>
+    <div class="topbar-subtitle">CB2 Collateral &amp; MCSS Clock Connection</div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <span class="topbar-badge">CB2 · MCSS</span>
+  <span class="topbar-date last-updated"></span>
+</header>
+
+<!-- ─── Tab navigation ──────────────────────────────────────── -->
+<nav class="tabs" role="tablist" aria-label="Dashboard sections">
+  <button class="tab-btn active" data-tab="pageCb2"  role="tab" aria-selected="true"  aria-controls="pageCb2">CB2 Collateral</button>
+  <button class="tab-btn"        data-tab="pageMcss" role="tab" aria-selected="false" aria-controls="pageMcss">MCSS Clock Connection</button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE 1 — CB2 COLLATERAL
+     ═════════════════════════════════════════════════════════ -->
+<main id="pageCb2" class="page active" role="tabpanel">
+
+  <!-- KPI row -->
+  <div class="kpi-row">
+    <div class="kpi-card" style="--accent-color:var(--primary)">
+      <div class="kpi-label">Total Deliverables</div>
+      <div class="kpi-value" id="cb2Total">—</div>
+      <div class="kpi-sub">Across 5 categories</div>
+    </div>
+    <div class="kpi-card" style="--accent-color:var(--success)">
+      <div class="kpi-label">Complete</div>
+      <div class="kpi-value" id="cb2Completed" style="color:var(--success)">—</div>
+      <div class="kpi-sub" id="cb2PctDone">—</div>
+    </div>
+    <div class="kpi-card" style="--accent-color:var(--primary)">
+      <div class="kpi-label">In Progress</div>
+      <div class="kpi-value" id="cb2InProgress" style="color:#5ba8f5">—</div>
+      <div class="kpi-sub">Active work items</div>
+    </div>
+    <div class="kpi-card" style="--accent-color:var(--text-muted)">
+      <div class="kpi-label">Not Started</div>
+      <div class="kpi-value" id="cb2NotStarted" style="color:var(--text-muted)">—</div>
+      <div class="kpi-sub">Upcoming deliverables</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="chart-row">
+    <div class="chart-card">
+      <h3>Deliverable Status Breakdown</h3>
+      <div class="chart-canvas-wrap">
+        <canvas id="cb2DonutChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Quality Score &amp; Defect Trend</h3>
+      <div class="chart-canvas-wrap">
+        <canvas id="cb2QualityChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category progress cards -->
+  <div class="section-header">
+    <span class="section-title">Progress by Category</span>
+    <span class="section-note last-updated"></span>
+  </div>
+  <div class="category-grid" id="categoryCards"></div>
+
+  <!-- Deliverable table -->
+  <div class="section-header">
+    <span class="section-title">All Deliverables</span>
+  </div>
+  <div class="filter-row">
+    <input  id="cb2Search"       type="search"    class="search-input"  placeholder="Search by name, ID, or owner…" aria-label="Search deliverables" />
+    <select id="cb2StatusFilter" class="filter-select" aria-label="Filter by status">
+      <option value="">All Statuses</option>
+      <option>Complete</option>
+      <option>In Progress</option>
+      <option>Not Started</option>
+    </select>
+    <select id="cb2CatFilter" class="filter-select" aria-label="Filter by category">
+      <option value="">All Categories</option>
+    </select>
+    <span class="filter-count" id="cb2RowCount"></span>
+  </div>
+  <div class="table-wrap">
+    <table id="cb2Table" aria-label="CB2 deliverables">
+      <thead>
+        <tr>
+          <th data-col="id">ID <span class="sort-icon">⇅</span></th>
+          <th data-col="name">Deliverable Name <span class="sort-icon">⇅</span></th>
+          <th data-col="category">Category <span class="sort-icon">⇅</span></th>
+          <th data-col="owner">Owner <span class="sort-icon">⇅</span></th>
+          <th data-col="status">Status <span class="sort-icon">⇅</span></th>
+          <th data-col="quality">Quality Score <span class="sort-icon">⇅</span></th>
+          <th data-col="dueDate">Due Date <span class="sort-icon">⇅</span></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE 2 — MCSS CLOCK CONNECTION
+     ═════════════════════════════════════════════════════════ -->
+<main id="pageMcss" class="page" role="tabpanel">
+
+  <!-- KPI row -->
+  <div class="kpi-row">
+    <div class="kpi-card" style="--accent-color:var(--primary)">
+      <div class="kpi-label">Total Connections</div>
+      <div class="kpi-value" id="mcssTotal">—</div>
+      <div class="kpi-sub">Monitored clock paths</div>
+    </div>
+    <div class="kpi-card" style="--accent-color:var(--success)">
+      <div class="kpi-label">Pass</div>
+      <div class="kpi-value" id="mcssPassed" style="color:var(--success)">—</div>
+      <div class="kpi-sub" id="mcssPassRate">—</div>
+    </div>
+    <div class="kpi-card" style="--accent-color:var(--warn)">
+      <div class="kpi-label">Marginal</div>
+      <div class="kpi-value" id="mcssMarginal" style="color:var(--warn)">—</div>
+      <div class="kpi-sub">Needs attention</div>
+    </div>
+    <div class="kpi-card" style="--accent-color:var(--danger)">
+      <div class="kpi-label">Failed</div>
+      <div class="kpi-value" id="mcssFailed" style="color:var(--danger)">—</div>
+      <div class="kpi-sub">Require fix</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="chart-row">
+    <div class="chart-card">
+      <h3>Pass Rate &amp; Signal Integrity Trend</h3>
+      <div class="chart-canvas-wrap">
+        <canvas id="mcssQualityChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Clock Skew Distribution (ps)</h3>
+      <div class="chart-canvas-wrap">
+        <canvas id="mcssSkewChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connection table -->
+  <div class="section-header">
+    <span class="section-title">Clock Connections</span>
+    <span class="section-note last-updated"></span>
+  </div>
+  <div class="filter-row">
+    <input  id="mcssSearch"       type="search"   class="search-input"  placeholder="Search by ID, source, or destination…" aria-label="Search connections" />
+    <select id="mcssStatusFilter" class="filter-select" aria-label="Filter by connection status">
+      <option value="">All Statuses</option>
+      <option>Pass</option>
+      <option>Marginal</option>
+      <option>Failed</option>
+    </select>
+    <span class="filter-count" id="mcssRowCount"></span>
+  </div>
+
+  <div class="connection-legend">
+    <span class="legend-item"><span class="legend-dot" style="background:var(--text-muted)"></span>Skew / Jitter thresholds — </span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--success)"></span>Good (skew &lt;25 ps, jitter &lt;20 ps)</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--warn)"></span>Marginal (skew 25–40 ps, jitter 20–30 ps)</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--danger)"></span>Critical (&gt;40 ps / &gt;30 ps)</span>
+  </div>
+
+  <div class="table-wrap">
+    <table id="mcssTable" aria-label="MCSS clock connections">
+      <thead>
+        <tr>
+          <th data-col="id">ID <span class="sort-icon">⇅</span></th>
+          <th data-col="src">Source Domain <span class="sort-icon">⇅</span></th>
+          <th data-col="dst">Target Domain <span class="sort-icon">⇅</span></th>
+          <th data-col="freqMHz" style="text-align:right">Freq (MHz) <span class="sort-icon">⇅</span></th>
+          <th data-col="skewPs"  style="text-align:right">Skew (ps) <span class="sort-icon">⇅</span></th>
+          <th data-col="jitterPs" style="text-align:right">Jitter (ps) <span class="sort-icon">⇅</span></th>
+          <th data-col="dutyCycleErr" style="text-align:right">Duty Err (%) <span class="sort-icon">⇅</span></th>
+          <th data-col="status">Status <span class="sort-icon">⇅</span></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+</main>
+
+<!-- Scripts -->
+<script src="chart.umd.min.js"></script>
+<script src="data.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,307 @@
+/* ============================================================
+   CB2 / MCSS Clock Distribution Dashboard — Stylesheet
+   ============================================================ */
+
+:root {
+  --primary:       #1a6fc4;
+  --primary-dark:  #155099;
+  --secondary:     #27a99e;
+  --accent:        #e8a020;
+  --danger:        #d63b3b;
+  --warn:          #e8a020;
+  --success:       #2daa5f;
+  --bg:            #0f1117;
+  --surface:       #1c1f2b;
+  --surface2:      #252836;
+  --border:        #2e3347;
+  --text:          #e2e6f0;
+  --text-muted:    #7c8499;
+  --radius:        8px;
+  --shadow:        0 2px 12px rgba(0,0,0,.45);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  min-height: 100vh;
+}
+
+/* ── Top bar ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-logo {
+  width: 32px;
+  height: 32px;
+  background: var(--primary);
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+}
+.topbar-title { font-size: 16px; font-weight: 600; letter-spacing: .02em; }
+.topbar-subtitle { font-size: 12px; color: var(--text-muted); }
+.topbar-spacer { flex: 1; }
+.topbar-badge {
+  font-size: 11px;
+  background: var(--primary);
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+.topbar-date { font-size: 12px; color: var(--text-muted); }
+
+/* ── Tab navigation ── */
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 16px 24px 0;
+  border-bottom: 1px solid var(--border);
+}
+.tab-btn {
+  padding: 9px 20px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.tab-btn:hover { color: var(--text); background: var(--surface2); }
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: var(--surface2); }
+
+/* ── Page layout ── */
+.page { display: none; padding: 24px; }
+.page.active { display: block; }
+
+/* ── Summary KPI cards ── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--accent-color, var(--primary));
+}
+.kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin-bottom: 6px; }
+.kpi-value { font-size: 32px; font-weight: 700; line-height: 1; }
+.kpi-sub   { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+/* ── Section headers ── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.section-title { font-size: 15px; font-weight: 600; }
+.section-note  { font-size: 12px; color: var(--text-muted); }
+
+/* ── Two-column chart row ── */
+.chart-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+.chart-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+.chart-canvas-wrap { position: relative; height: 220px; }
+
+/* ── Progress bars for category overview ── */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.category-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.category-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.category-card-name  { font-weight: 600; font-size: 13px; }
+.category-card-count { font-size: 12px; color: var(--text-muted); }
+.progress-bar-bg {
+  height: 8px;
+  background: var(--surface2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width .5s ease;
+}
+.progress-stats { display: flex; gap: 14px; font-size: 11px; }
+.stat-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+
+/* ── Deliverable table ── */
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: auto;
+  margin-bottom: 24px;
+}
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead tr { background: var(--surface2); }
+th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+th:hover { color: var(--text); }
+th .sort-icon { opacity: .4; margin-left: 4px; }
+th.sorted .sort-icon { opacity: 1; }
+tbody tr { border-top: 1px solid var(--border); transition: background .1s; }
+tbody tr:hover { background: var(--surface2); }
+td { padding: 9px 14px; vertical-align: middle; }
+.td-id { font-family: monospace; font-size: 12px; color: var(--text-muted); }
+
+/* Status badges */
+.badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+.badge-complete  { background: rgba(45,170,95,.18);  color: #50d68a; }
+.badge-progress  { background: rgba(26,111,196,.18); color: #5ba8f5; }
+.badge-notstart  { background: rgba(124,132,153,.18);color: var(--text-muted); }
+.badge-pass      { background: rgba(45,170,95,.18);  color: #50d68a; }
+.badge-marginal  { background: rgba(232,160,32,.18); color: #f5c542; }
+.badge-failed    { background: rgba(214,59,59,.18);  color: #f07070; }
+
+/* Quality score pill */
+.quality-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.quality-bar {
+  display: inline-block;
+  width: 48px;
+  height: 5px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+.quality-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+/* ── Filter / search bar ── */
+.filter-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  align-items: center;
+}
+.search-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 7px 12px;
+  font-size: 13px;
+  min-width: 220px;
+}
+.search-input:focus { outline: none; border-color: var(--primary); }
+.filter-select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 7px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.filter-select:focus { outline: none; border-color: var(--primary); }
+.filter-label { font-size: 12px; color: var(--text-muted); }
+.filter-count { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+
+/* ── MCSS connection map ── */
+.connection-legend {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+}
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .topbar { padding: 0 14px; }
+  .page   { padding: 14px; }
+  .kpi-value { font-size: 24px; }
+  .chart-canvas-wrap { height: 180px; }
+}
