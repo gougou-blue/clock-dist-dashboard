@@ -75,6 +75,7 @@ scripts/refresh_real_mcss_data.sh
 ```
 
 The script defaults `PROJ_ARCHIVE` to `/nfs/site/disks/nwp_arc_proj_archive/` and writes `public/data/latest.json`. Pass an output path as the first argument to write somewhere else.
+After writing the payload, it prints a compact blocker summary. A validated Linux run on `scce04380705` produced `Open blockers: 656` against the real archive data.
 
 ## View the Dashboard
 

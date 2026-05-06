@@ -16,3 +16,5 @@ OUTPUT_PATH=${1:-public/data/latest.json}
 "$PYTHON_BIN" -m dashboard.main \
   --scan-mcss-release-tree \
   --output "$OUTPUT_PATH"
+
+"$PYTHON_BIN" scripts/summarize_dashboard_payload.py "$OUTPUT_PATH"
