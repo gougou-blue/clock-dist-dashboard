@@ -66,6 +66,16 @@ python -m dashboard.main --scan-mcss-release-tree --output public/data/latest.js
 
 In VS Code, you can also run the `Build Clock Dashboard Data` build task to regenerate the same payload.
 
+On Linux, after cloning the repo in an environment with `/nfs/site/disks/nwp_arc_proj_archive/` mounted, refresh the real MCSS archive data with:
+
+```bash
+git clone https://github.com/gougou-blue/clock-dist-dashboard.git
+cd clock-dist-dashboard
+scripts/refresh_real_mcss_data.sh
+```
+
+The script defaults `PROJ_ARCHIVE` to `/nfs/site/disks/nwp_arc_proj_archive/` and writes `public/data/latest.json`. Pass an output path as the first argument to write somewhere else.
+
 ## View the Dashboard
 
 Generate the payload and serve the static UI:
