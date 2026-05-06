@@ -11,9 +11,32 @@ YELLOW = "Yellow"
 RED = "Red"
 GRAY = "Gray"
 
-_GREEN_STATUS_VALUES = {"complete", "completed", "released", "pass", "passed", "true", "yes", "green"}
+_GREEN_STATUS_VALUES = {
+    "available",
+    "complete",
+    "completed",
+    "present",
+    "released",
+    "pass",
+    "passed",
+    "true",
+    "yes",
+    "green",
+}
 _YELLOW_STATUS_VALUES = {"in_progress", "in progress", "partial", "draft", "pending", "waived", "yellow"}
-_RED_STATUS_VALUES = {"missing", "not_started", "not started", "not_released", "failed", "fail", "false", "no", "red"}
+_RED_STATUS_VALUES = {
+    "absent",
+    "missing",
+    "not_started",
+    "not started",
+    "not_released",
+    "unavailable",
+    "failed",
+    "fail",
+    "false",
+    "no",
+    "red",
+}
 
 
 def evaluate_status(metric: MetricDefinition, value: Any) -> str:

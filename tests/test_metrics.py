@@ -25,7 +25,7 @@ class StatusEvaluationTests(unittest.TestCase):
         self.assertEqual(evaluate_status(metric, 3), RED)
 
     def test_release_status_values(self) -> None:
-        metric = get_metric_definition("mcss_part2_release_status")
+        metric = get_metric_definition("mcss_release_status")
         self.assertEqual(evaluate_status(metric, "released"), GREEN)
         self.assertEqual(evaluate_status(metric, "pending"), YELLOW)
         self.assertEqual(evaluate_status(metric, "not_released"), RED)

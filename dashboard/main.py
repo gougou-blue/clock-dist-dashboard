@@ -65,7 +65,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--scan-mcss-release-tree",
         action="store_true",
-        help="Derive MCSS Part 1 / Part 2 release status from per-partition release folders.",
+        help="Derive MCSS release and collateral availability from per-partition release folders.",
     )
     parser.add_argument("--output", default="public/data/latest.json", help="Output JSON path.")
     return parser

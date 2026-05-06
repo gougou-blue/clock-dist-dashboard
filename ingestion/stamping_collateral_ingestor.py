@@ -1,9 +1,10 @@
-"""MCSS collateral ingestion for connection, relationship, and stamping metrics."""
+"""MCSS release collateral ingestion for archive-backed partition metrics."""
 
 from __future__ import annotations
 
 import os
 import re
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -12,11 +13,57 @@ from ingestion import MetricRecord, load_records_from_json
 
 SOURCE_SYSTEM = "mcss_stamping"
 DEFAULT_ENV_VAR = "MCSS_METRICS_JSON"
-DEFAULT_RELEASE_TEMPLATE = "/nfs/site/disks/nwp_clk_0002/aagoyal/nio_a0_ww17a/nio-a0-26ww17b/output/imh/imh_r2g_lite_fc/{partition}.imh_stack_r2g_fc/runs/{partition}/1276.5_dot4/release/latest/clock_collateral"
+DEFAULT_RELEASE_TEMPLATE = "$PROJ_ARCHIVE/arc/{partition}/clock_collateral/NIOA0_0P5_PRD"
 RELEASE_TEMPLATE_ENV_VAR = "MCSS_RELEASE_TEMPLATE"
 CLOCKS_FILE_TEMPLATE_ENV_VAR = "MCSS_CLOCKS_FILE_TEMPLATE"
 CREATE_CLOCK_NAME_PATTERN = re.compile(r"\bcreate_clock\b(?P<body>[^\n;]*)", re.IGNORECASE)
 NAME_OPTION_PATTERN = re.compile(r"""(?:^|\s)-name\s+(?P<name>\{[^}]+\}|"[^"]+"|'[^']+'|\S+)""")
+
+
+@dataclass(frozen=True)
+class CollateralSpec:
+    key: str
+    metric: str
+    patterns: tuple[str, ...]
+
+
+EXPECTED_COLLATERAL: tuple[CollateralSpec, ...] = (
+    CollateralSpec(
+        key="clock_definition",
+        metric="mcss_clock_definition_status",
+        patterns=("{partition}_clocks.tcl", "*clock_definition*.tcl", "*clock_def*.tcl", "*clocks*.tcl"),
+    ),
+    CollateralSpec(
+        key="uncertainty",
+        metric="mcss_uncertainty_status",
+        patterns=("{partition}_uncertainty*.tcl", "*uncertainty*.tcl"),
+    ),
+    CollateralSpec(
+        key="xvoltage",
+        metric="mcss_xvoltage_status",
+        patterns=("{partition}_xvoltage*.tcl", "*xvoltage*.tcl", "*x_voltage*.tcl", "*cross_voltage*.tcl"),
+    ),
+    CollateralSpec(
+        key="cdc",
+        metric="mcss_cdc_status",
+        patterns=("{partition}_cdc*.tcl", "*cdc*.tcl"),
+    ),
+    CollateralSpec(
+        key="latencies",
+        metric="mcss_latencies_status",
+        patterns=("{partition}_latenc*.tcl", "*latenc*.tcl"),
+    ),
+    CollateralSpec(
+        key="stampings",
+        metric="mcss_stampings_status",
+        patterns=("pdop_stamping.tcl", "{partition}_stamp*.tcl", "*stamp*.tcl"),
+    ),
+    CollateralSpec(
+        key="exceptions",
+        metric="mcss_exceptions_status",
+        patterns=("{partition}_exception*.tcl", "{partition}_exceptions*.tcl", "*exception*.tcl"),
+    ),
+)
 
 
 def get_latest_metrics(
@@ -35,40 +82,41 @@ def get_latest_metrics(
 
 
 def scan_release_metrics(partitions: list[dict[str, Any]]) -> list[MetricRecord]:
-    """Scan per-partition MCSS clocks files for release and clock coverage."""
+    """Scan per-partition MCSS release folders for required collateral coverage."""
 
     collected_at = datetime.now(timezone.utc).isoformat()
     records: list[MetricRecord] = []
     for partition in partitions:
         partition_name = str(partition["partition"])
-        clocks_file = _clocks_file_path(partition_name)
-        is_released = clocks_file.is_file()
-        revision = _release_revision(clocks_file)
-        clock_names = parse_create_clock_names(clocks_file) if is_released else []
-        release_value = "released" if is_released else "not_released"
-        clock_targets = clock_names or [None]
+        release_dir = _release_dir_path(partition_name)
+        collateral = _scan_expected_collateral(partition_name, release_dir)
+        revision = _release_revision(release_dir)
+        release_value = "released" if all(item["available"] for item in collateral.values()) else "not_released"
 
-        for clock in clock_targets:
-            records.append(
-                _release_record(
-                    clock,
-                    partition_name,
-                    "mcss_part1_release_status",
-                    release_value,
-                    revision,
-                    collected_at,
-                    clocks_file,
-                )
+        records.append(
+            _release_record(
+                None,
+                partition_name,
+                "mcss_release_status",
+                release_value,
+                revision,
+                collected_at,
+                release_dir,
+                _missing_collateral(collateral),
             )
+        )
+        for spec in EXPECTED_COLLATERAL:
+            state = collateral[spec.key]
             records.append(
                 _release_record(
-                    clock,
+                    None,
                     partition_name,
-                    "mcss_part2_release_status",
-                    release_value,
+                    spec.metric,
+                    "available" if state["available"] else "missing",
                     revision,
                     collected_at,
-                    clocks_file,
+                    state["path"] or release_dir,
+                    _missing_patterns(state),
                 )
             )
     return records
@@ -90,39 +138,37 @@ def parse_create_clock_names(clocks_file: str | Path) -> list[str]:
 def sample_metrics() -> list[MetricRecord]:
     collected_at = datetime.now(timezone.utc).isoformat()
     return [
-        _record("mc_clk", "pard2d1uladda0", "mcss_part1_completion_status", "complete", "mcss_r26ww17.4", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "mcss_part1_release_status", "released", "mcss_r26ww17.4", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "mcss_part2_completion_status", "complete", "mcss_r26ww17.4", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "mcss_part2_release_status", "released", "mcss_r26ww17.4", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "mcss_schema_validation_error_count", 0, "mcss_r26ww17.4", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "unresolved_clock_connection_count", 0, "mcss_r26ww17.4", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "invalid_clock_relationship_count", 0, "mcss_r26ww17.4", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "stamping_mismatch_count", 0, "mcss_r26ww17.4", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "mcss_consumer_runs_behind", 0, "mcss_r26ww17.4", collected_at),
-        _record("uclk_io", "paracciommu", "mcss_part1_completion_status", "complete", "mcss_r26ww17.4", collected_at),
-        _record("uclk_io", "paracciommu", "mcss_part1_release_status", "released", "mcss_r26ww17.4", collected_at),
-        _record("uclk_io", "paracciommu", "mcss_part2_completion_status", "partial", "mcss_r26ww17.4", collected_at),
-        _record("uclk_io", "paracciommu", "mcss_part2_release_status", "not_released", "mcss_r26ww17.4", collected_at),
-        _record("uclk_io", "paracciommu", "mcss_schema_validation_error_count", 0, "mcss_r26ww17.4", collected_at),
-        _record("uclk_io", "paracciommu", "unresolved_clock_connection_count", 2, "mcss_r26ww17.4", collected_at),
-        _record("uclk_io", "paracciommu", "invalid_clock_relationship_count", 1, "mcss_r26ww17.4", collected_at),
-        _record("uclk_io", "paracciommu", "stamping_mismatch_count", 1, "mcss_r26ww17.4", collected_at),
-        _record("uclk_io", "paracciommu", "mcss_consumer_runs_behind", 2, "mcss_r26ww17.4", collected_at),
+        _partition_record("pard2d1uladda0", "mcss_release_status", "released", "mcss_r26ww17.4", collected_at),
+        _partition_record("pard2d1uladda0", "mcss_clock_definition_status", "available", "mcss_r26ww17.4", collected_at),
+        _partition_record("pard2d1uladda0", "mcss_uncertainty_status", "available", "mcss_r26ww17.4", collected_at),
+        _partition_record("pard2d1uladda0", "mcss_xvoltage_status", "available", "mcss_r26ww17.4", collected_at),
+        _partition_record("pard2d1uladda0", "mcss_cdc_status", "available", "mcss_r26ww17.4", collected_at),
+        _partition_record("pard2d1uladda0", "mcss_latencies_status", "available", "mcss_r26ww17.4", collected_at),
+        _partition_record("pard2d1uladda0", "mcss_stampings_status", "available", "mcss_r26ww17.4", collected_at),
+        _partition_record("pard2d1uladda0", "mcss_exceptions_status", "available", "mcss_r26ww17.4", collected_at),
+        _partition_record("paracciommu", "mcss_release_status", "not_released", "mcss_r26ww17.4", collected_at),
+        _partition_record("paracciommu", "mcss_clock_definition_status", "available", "mcss_r26ww17.4", collected_at),
+        _partition_record("paracciommu", "mcss_uncertainty_status", "available", "mcss_r26ww17.4", collected_at),
+        _partition_record("paracciommu", "mcss_xvoltage_status", "missing", "mcss_r26ww17.4", collected_at),
+        _partition_record("paracciommu", "mcss_cdc_status", "available", "mcss_r26ww17.4", collected_at),
+        _partition_record("paracciommu", "mcss_latencies_status", "missing", "mcss_r26ww17.4", collected_at),
+        _partition_record("paracciommu", "mcss_stampings_status", "available", "mcss_r26ww17.4", collected_at),
+        _partition_record("paracciommu", "mcss_exceptions_status", "missing", "mcss_r26ww17.4", collected_at),
     ]
 
 
-def _record(clock: str, partition: str, metric: str, value: Any, revision: str, collected_at: str) -> MetricRecord:
-    clocks_file = _clocks_file_path(partition)
+def _partition_record(partition: str, metric: str, value: Any, revision: str, collected_at: str) -> MetricRecord:
+    release_dir = _release_dir_path(partition)
     return {
         "milestone": "0p5",
         "deliverable": "MCSS",
-        "clock": clock,
+        "clock": None,
         "partition": partition,
         "metric": metric,
         "value": value,
         "source": {
             "system": SOURCE_SYSTEM,
-            "uri": clocks_file.as_posix(),
+            "uri": release_dir.as_posix(),
             "revision": revision,
             "run_id": "26ww17.5",
             "collected_at": collected_at,
@@ -137,8 +183,18 @@ def _release_record(
     value: Any,
     revision: str,
     collected_at: str,
-    clocks_file: Path,
+    source_path: Path,
+    details: dict[str, Any] | None = None,
 ) -> MetricRecord:
+    source = {
+        "system": SOURCE_SYSTEM,
+        "uri": source_path.as_posix(),
+        "revision": revision,
+        "run_id": _run_id_from_release_path(source_path),
+        "collected_at": collected_at,
+    }
+    if details:
+        source.update(details)
     return {
         "milestone": "0p5",
         "deliverable": "MCSS",
@@ -146,40 +202,73 @@ def _release_record(
         "partition": partition,
         "metric": metric,
         "value": value,
-        "source": {
-            "system": SOURCE_SYSTEM,
-            "uri": clocks_file.as_posix(),
-            "revision": revision,
-            "run_id": _run_id_from_clocks_file(clocks_file),
-            "collected_at": collected_at,
-        },
+        "source": source,
     }
+
+
+def _release_dir_path(partition: str) -> Path:
+    release_template = os.environ.get(RELEASE_TEMPLATE_ENV_VAR, DEFAULT_RELEASE_TEMPLATE).rstrip("/")
+    expanded_template = os.path.expandvars(release_template)
+    return Path(expanded_template.format(partition=partition))
 
 
 def _clocks_file_path(partition: str) -> Path:
     clocks_file_template = os.environ.get(CLOCKS_FILE_TEMPLATE_ENV_VAR)
     if clocks_file_template:
         return Path(clocks_file_template.format(partition=partition))
-    release_template = os.environ.get(RELEASE_TEMPLATE_ENV_VAR, DEFAULT_RELEASE_TEMPLATE).rstrip("/")
-    return Path(f"{release_template}/{{partition}}_clocks.tcl".format(partition=partition))
+    return _release_dir_path(partition) / f"{partition}_clocks.tcl"
 
 
-def _release_revision(clocks_file: Path) -> str:
-    if not clocks_file.exists():
-        return "missing_clocks_file"
+def _release_revision(release_path: Path) -> str:
+    if not release_path.exists():
+        return "missing_release_path"
     try:
-        return clocks_file.resolve().as_posix()
+        return release_path.resolve().as_posix()
     except OSError:
-        return clocks_file.as_posix()
+        return release_path.as_posix()
 
 
-def _run_id_from_clocks_file(clocks_file: Path) -> str:
-    parts = clocks_file.parts
+def _run_id_from_release_path(release_path: Path) -> str:
+    parts = release_path.parts
     if "runs" in parts:
         runs_index = parts.index("runs")
         if len(parts) > runs_index + 2:
             return parts[runs_index + 2]
-    return clocks_file.parent.name
+    return release_path.parent.name
+
+
+def _scan_expected_collateral(partition: str, release_dir: Path) -> dict[str, dict[str, Any]]:
+    return {
+        spec.key: _scan_collateral_spec(partition, release_dir, spec)
+        for spec in EXPECTED_COLLATERAL
+    }
+
+
+def _scan_collateral_spec(partition: str, release_dir: Path, spec: CollateralSpec) -> dict[str, Any]:
+    patterns = [pattern.format(partition=partition) for pattern in spec.patterns]
+    if spec.key == "clock_definition" and os.environ.get(CLOCKS_FILE_TEMPLATE_ENV_VAR):
+        candidate = _clocks_file_path(partition)
+        return {
+            "available": candidate.is_file(),
+            "path": candidate if candidate.is_file() else None,
+            "patterns": [candidate.as_posix()],
+        }
+    for pattern in patterns:
+        matches = sorted(path for path in release_dir.glob(pattern) if path.is_file())
+        if matches:
+            return {"available": True, "path": matches[0], "patterns": patterns}
+    return {"available": False, "path": None, "patterns": patterns}
+
+
+def _missing_collateral(collateral: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    missing = [key for key, state in collateral.items() if not state["available"]]
+    return {"missing_collateral": missing} if missing else {}
+
+
+def _missing_patterns(state: dict[str, Any]) -> dict[str, Any]:
+    if state["available"]:
+        return {}
+    return {"expected_patterns": state["patterns"]}
 
 
 def _strip_tcl_comments(content: str) -> str:

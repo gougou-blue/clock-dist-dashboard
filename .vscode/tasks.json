@@ -8,9 +8,15 @@
 			"args": [
 				"-m",
 				"dashboard.main",
+				"--scan-mcss-release-tree",
 				"--output",
 				"public/data/latest.json"
 			],
+			"options": {
+				"env": {
+					"PROJ_ARCHIVE": "/nfs/site/disks/nwp_arc_proj_archive/"
+				}
+			},
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "build"
