@@ -13,6 +13,7 @@ from ingestion import MetricRecord, load_records_from_json
 
 SOURCE_SYSTEM = "mcss_stamping"
 DEFAULT_ENV_VAR = "MCSS_METRICS_JSON"
+DEFAULT_PROJ_ARCHIVE = "/nfs/site/disks/nwp_arc_proj_archive/"
 DEFAULT_RELEASE_TEMPLATE = "$PROJ_ARCHIVE/arc/{partition}/clock_collateral/NIOA0_0P5_PRD"
 RELEASE_TEMPLATE_ENV_VAR = "MCSS_RELEASE_TEMPLATE"
 CLOCKS_FILE_TEMPLATE_ENV_VAR = "MCSS_CLOCKS_FILE_TEMPLATE"
@@ -37,16 +38,6 @@ EXPECTED_COLLATERAL: tuple[CollateralSpec, ...] = (
         key="uncertainty",
         metric="mcss_uncertainty_status",
         patterns=("{partition}_uncertainty*.tcl", "*uncertainty*.tcl"),
-    ),
-    CollateralSpec(
-        key="xvoltage",
-        metric="mcss_xvoltage_status",
-        patterns=("{partition}_xvoltage*.tcl", "*xvoltage*.tcl", "*x_voltage*.tcl", "*cross_voltage*.tcl"),
-    ),
-    CollateralSpec(
-        key="cdc",
-        metric="mcss_cdc_status",
-        patterns=("{partition}_cdc*.tcl", "*cdc*.tcl"),
     ),
     CollateralSpec(
         key="latencies",
@@ -141,16 +132,12 @@ def sample_metrics() -> list[MetricRecord]:
         _partition_record("pard2d1uladda0", "mcss_release_status", "released", "mcss_r26ww17.4", collected_at),
         _partition_record("pard2d1uladda0", "mcss_clock_definition_status", "available", "mcss_r26ww17.4", collected_at),
         _partition_record("pard2d1uladda0", "mcss_uncertainty_status", "available", "mcss_r26ww17.4", collected_at),
-        _partition_record("pard2d1uladda0", "mcss_xvoltage_status", "available", "mcss_r26ww17.4", collected_at),
-        _partition_record("pard2d1uladda0", "mcss_cdc_status", "available", "mcss_r26ww17.4", collected_at),
         _partition_record("pard2d1uladda0", "mcss_latencies_status", "available", "mcss_r26ww17.4", collected_at),
         _partition_record("pard2d1uladda0", "mcss_stampings_status", "available", "mcss_r26ww17.4", collected_at),
         _partition_record("pard2d1uladda0", "mcss_exceptions_status", "available", "mcss_r26ww17.4", collected_at),
         _partition_record("paracciommu", "mcss_release_status", "not_released", "mcss_r26ww17.4", collected_at),
         _partition_record("paracciommu", "mcss_clock_definition_status", "available", "mcss_r26ww17.4", collected_at),
         _partition_record("paracciommu", "mcss_uncertainty_status", "available", "mcss_r26ww17.4", collected_at),
-        _partition_record("paracciommu", "mcss_xvoltage_status", "missing", "mcss_r26ww17.4", collected_at),
-        _partition_record("paracciommu", "mcss_cdc_status", "available", "mcss_r26ww17.4", collected_at),
         _partition_record("paracciommu", "mcss_latencies_status", "missing", "mcss_r26ww17.4", collected_at),
         _partition_record("paracciommu", "mcss_stampings_status", "available", "mcss_r26ww17.4", collected_at),
         _partition_record("paracciommu", "mcss_exceptions_status", "missing", "mcss_r26ww17.4", collected_at),
@@ -208,8 +195,18 @@ def _release_record(
 
 def _release_dir_path(partition: str) -> Path:
     release_template = os.environ.get(RELEASE_TEMPLATE_ENV_VAR, DEFAULT_RELEASE_TEMPLATE).rstrip("/")
-    expanded_template = os.path.expandvars(release_template)
+    expanded_template = expand_release_template(release_template)
     return Path(expanded_template.format(partition=partition))
+
+
+def expand_release_template(release_template: str) -> str:
+    archive_root = os.environ.get("PROJ_ARCHIVE", DEFAULT_PROJ_ARCHIVE).rstrip("/")
+    return os.path.expandvars(
+        release_template
+        .replace("${PROJ_ARCHIVE}", archive_root)
+        .replace("$PROJ_ARCHIVE", archive_root)
+        .replace("%PROJ_ARCHIVE%", archive_root)
+    )
 
 
 def _clocks_file_path(partition: str) -> Path:

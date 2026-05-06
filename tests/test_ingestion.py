@@ -11,6 +11,7 @@ from ingestion.clock_inventory_ingestor import get_clock_inventory
 from ingestion.clock_repo_ingestor import get_latest_metrics as get_cb2_metrics
 from ingestion.partition_inventory_ingestor import get_partition_inventory
 from ingestion.stamping_collateral_ingestor import get_latest_metrics as get_mcss_metrics
+from ingestion.stamping_collateral_ingestor import expand_release_template
 from ingestion.stamping_collateral_ingestor import scan_release_metrics
 
 
@@ -115,8 +116,6 @@ class IngestionTests(unittest.TestCase):
             )
             for file_name in (
                 "par_test_uncertainty.tcl",
-                "par_test_xvoltage.tcl",
-                "par_test_cdc.tcl",
                 "par_test_latencies.tcl",
                 "pdop_stamping.tcl",
                 "par_test_exceptions.tcl",
@@ -136,8 +135,6 @@ class IngestionTests(unittest.TestCase):
             self.assertEqual(partition_values["mcss_release_status"], "released")
             self.assertEqual(partition_values["mcss_clock_definition_status"], "available")
             self.assertEqual(partition_values["mcss_uncertainty_status"], "available")
-            self.assertEqual(partition_values["mcss_xvoltage_status"], "available")
-            self.assertEqual(partition_values["mcss_cdc_status"], "available")
             self.assertEqual(partition_values["mcss_latencies_status"], "available")
             self.assertEqual(partition_values["mcss_stampings_status"], "available")
             self.assertEqual(partition_values["mcss_exceptions_status"], "available")
@@ -152,8 +149,6 @@ class IngestionTests(unittest.TestCase):
                 release_dir.mkdir(parents=True)
                 (release_dir / f"{partition}_clocks.tcl").write_text("# clocks\n", encoding="utf-8")
                 (release_dir / f"{partition}_uncertainty.tcl").write_text("# uncertainty\n", encoding="utf-8")
-                (release_dir / f"{partition}_xvoltage.tcl").write_text("# xvoltage\n", encoding="utf-8")
-                (release_dir / f"{partition}_cdc.tcl").write_text("# cdc\n", encoding="utf-8")
                 (release_dir / f"{partition}_latencies.tcl").write_text("# latencies\n", encoding="utf-8")
                 (release_dir / "pdop_stamping.tcl").write_text("# stampings\n", encoding="utf-8")
                 (release_dir / f"{partition}_exceptions.tcl").write_text("# exceptions\n", encoding="utf-8")
@@ -166,10 +161,19 @@ class IngestionTests(unittest.TestCase):
                     ]
                 )
 
-            self.assertEqual(len(records), 16)
+            self.assertEqual(len(records), 12)
             self.assertEqual({record["partition"] for record in records}, {"pard2d1chnl", "parcd2dufich0e"})
             self.assertTrue(all(record["value"] in {"released", "available"} for record in records))
             self.assertTrue(all("NIOA0_0P5_PRD" in record["source"]["uri"] for record in records))
+
+    def test_mcss_release_template_defaults_proj_archive_when_env_is_unset(self) -> None:
+        with patch.dict("os.environ", {}, clear=True):
+            expanded = expand_release_template("$PROJ_ARCHIVE/arc/{partition}/clock_collateral/NIOA0_0P5_PRD")
+
+        self.assertEqual(
+            expanded,
+            "/nfs/site/disks/nwp_arc_proj_archive/arc/{partition}/clock_collateral/NIOA0_0P5_PRD",
+        )
 
     def test_mcss_release_scan_marks_release_missing_when_any_collateral_file_is_absent(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -181,10 +185,8 @@ class IngestionTests(unittest.TestCase):
             )
             for file_name in (
                 "par_test_uncertainty.tcl",
-                "par_test_cdc.tcl",
                 "par_test_latencies.tcl",
                 "par_test_stampings.tcl",
-                "par_test_exceptions.tcl",
             ):
                 (release_dir / file_name).write_text("# released\n", encoding="utf-8")
 
@@ -199,9 +201,8 @@ class IngestionTests(unittest.TestCase):
 
             partition_records = {record["metric"]: record for record in records if record["clock"] is None}
             self.assertEqual(partition_records["mcss_release_status"]["value"], "not_released")
-            self.assertEqual(partition_records["mcss_xvoltage_status"]["value"], "missing")
-            self.assertEqual(partition_records["mcss_release_status"]["source"]["missing_collateral"], ["xvoltage"])
-            self.assertIn("*xvoltage*.tcl", partition_records["mcss_xvoltage_status"]["source"]["expected_patterns"])
+            self.assertEqual(partition_records["mcss_release_status"]["source"]["missing_collateral"], ["exceptions"])
+            self.assertEqual(partition_records["mcss_exceptions_status"]["value"], "missing")
 
 
 if __name__ == "__main__":

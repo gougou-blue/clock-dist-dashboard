@@ -27,8 +27,6 @@ MCSS metrics include:
 - Overall MCSS release status, green only when all required collateral files are present
 - Clock definition collateral availability
 - Uncertainty collateral availability
-- Xvoltage collateral availability
-- CDC collateral availability
 - Latencies collateral availability
 - Stampings collateral availability
 - Exceptions collateral availability
@@ -126,7 +124,7 @@ For each active partition, the default release directory template is:
 $PROJ_ARCHIVE/arc/{partition}/clock_collateral/NIOA0_0P5_PRD
 ```
 
-MCSS release is marked `released` only when all required collateral types are found in that directory: clock definition, uncertainty, xvoltage, cdc, latencies, stampings, and exceptions. The scanner accepts known shared filenames such as `pdop_stamping.tcl`, looks for partition-prefixed files such as `{partition}_clocks.tcl`, `{partition}_uncertainty*.tcl`, `{partition}_xvoltage*.tcl`, `{partition}_cdc*.tcl`, `{partition}_latenc*.tcl`, `{partition}_stamp*.tcl`, and `{partition}_exception*.tcl`, and then uses broader fallback globs for each collateral type.
+MCSS release is marked `released` only when all required collateral types are found in that directory: clock definition, uncertainty, latencies, stampings, and exceptions. CDC and xvoltage are intentionally not release gates yet because no corresponding archive collateral files have been identified. The scanner accepts known shared filenames such as `pdop_stamping.tcl`, looks for partition-prefixed files such as `{partition}_clocks.tcl`, `{partition}_uncertainty*.tcl`, `{partition}_latenc*.tcl`, `{partition}_stamp*.tcl`, and `{partition}_exception*.tcl`, and then uses broader fallback globs for each collateral type.
 
 ## Normalized Metric Record
 

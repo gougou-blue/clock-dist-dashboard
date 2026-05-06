@@ -15,11 +15,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
 from ingestion.partition_inventory_ingestor import get_partition_inventory
-from ingestion.stamping_collateral_ingestor import DEFAULT_RELEASE_TEMPLATE, EXPECTED_COLLATERAL
+from ingestion.stamping_collateral_ingestor import DEFAULT_RELEASE_TEMPLATE, EXPECTED_COLLATERAL, expand_release_template
 
 
 def release_dir(partition: str, release_template: str) -> Path:
-    return Path(os.path.expandvars(release_template).format(partition=partition))
+    return Path(expand_release_template(release_template).format(partition=partition))
 
 
 def load_payload(path: Path) -> dict[str, Any] | None:
