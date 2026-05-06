@@ -73,14 +73,17 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = build_parser().parse_args()
-    aggregator = refresh_data(
-        cb2_source=args.cb2_source,
-        mcss_source=args.mcss_source,
-        partition_source=args.partition_source,
-        inventory_source=args.inventory_source,
-        clock_inventory_source=args.clock_inventory_source,
-        scan_mcss_release_tree=args.scan_mcss_release_tree,
-    )
+    try:
+        aggregator = refresh_data(
+            cb2_source=args.cb2_source,
+            mcss_source=args.mcss_source,
+            partition_source=args.partition_source,
+            inventory_source=args.inventory_source,
+            clock_inventory_source=args.clock_inventory_source,
+            scan_mcss_release_tree=args.scan_mcss_release_tree,
+        )
+    except RuntimeError as error:
+        raise SystemExit(str(error)) from error
     payload = format_for_ui(aggregator)
     output_path = write_dashboard_payload(payload, args.output)
     print(f"Wrote dashboard payload: {output_path}")

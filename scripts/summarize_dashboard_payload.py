@@ -44,6 +44,16 @@ def main() -> None:
     for (deliverable, metric), count in sorted(Counter((m.get("deliverable"), m.get("metric")) for m in red_metrics).items()):
         print(f"  {deliverable or 'unknown'} / {metric or 'unknown'}: {count}")
 
+    print()
+    print("MCSS release availability:")
+    release_counts = Counter(
+        (m.get("status"), m.get("value"))
+        for m in metrics
+        if m.get("metric") == "mcss_release_status"
+    )
+    for (status, value), count in sorted(release_counts.items()):
+        print(f"  {status or 'unknown'} / {value or 'unknown'}: {count}")
+
 
 if __name__ == "__main__":
     main()

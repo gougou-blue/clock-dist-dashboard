@@ -175,6 +175,13 @@ class IngestionTests(unittest.TestCase):
             "/nfs/site/disks/nwp_arc_proj_archive/arc/{partition}/clock_collateral/NIOA0_0P5_PRD",
         )
 
+    def test_mcss_release_scan_fails_when_archive_root_is_unavailable(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            missing_archive = Path(temp_dir) / "missing_archive"
+            with patch.dict("os.environ", {"PROJ_ARCHIVE": str(missing_archive)}, clear=False):
+                with self.assertRaisesRegex(RuntimeError, "MCSS archive root is not available"):
+                    scan_release_metrics([{"partition": "par_test", "active": True}])
+
     def test_mcss_release_scan_marks_release_missing_when_any_collateral_file_is_absent(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             release_dir = Path(temp_dir) / "par_test" / "clock_collateral"

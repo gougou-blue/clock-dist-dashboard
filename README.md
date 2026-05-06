@@ -59,10 +59,9 @@ The project currently uses only the Python standard library.
 
 ```powershell
 python -m unittest discover -s tests
-python -m dashboard.main --scan-mcss-release-tree --output public/data/latest.json
 ```
 
-In VS Code, you can also run the `Build Clock Dashboard Data` build task to regenerate the same payload.
+The real MCSS release scan needs the Linux archive mount. On Windows, serve an existing `public/data/latest.json` that was generated on Linux, or pass a normalized MCSS JSON export with `--mcss-source`.
 
 On Linux, after cloning the repo in an environment with `/nfs/site/disks/nwp_arc_proj_archive/` mounted, refresh the real MCSS archive data with:
 
@@ -73,7 +72,7 @@ scripts/refresh_real_mcss_data.sh
 ```
 
 The script defaults `PROJ_ARCHIVE` to `/nfs/site/disks/nwp_arc_proj_archive/` and writes `public/data/latest.json`. Pass an output path as the first argument to write somewhere else.
-After writing the payload, it prints a compact blocker summary. A validated Linux run on `scce04380705` produced `Open blockers: 656` against the real archive data.
+After writing the payload, it prints a compact blocker summary. With CDC and xvoltage punted, the expected real archive split is 183 MCSS releases available and 13 missing release folders/collateral sets.
 
 To inspect real archive filenames and list partitions behind each missing MCSS metric, run:
 
@@ -83,10 +82,9 @@ scripts/inspect_mcss_archive.py --payload public/data/latest.json
 
 ## View the Dashboard
 
-Generate the payload and serve the static UI:
+Generate the payload on Linux with `scripts/refresh_real_mcss_data.sh`, then serve the static UI:
 
 ```powershell
-python -m dashboard.main --scan-mcss-release-tree --output public/data/latest.json
 python -m http.server 8000 --directory public
 ```
 

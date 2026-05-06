@@ -75,6 +75,7 @@ def get_latest_metrics(
 def scan_release_metrics(partitions: list[dict[str, Any]]) -> list[MetricRecord]:
     """Scan per-partition MCSS release folders for required collateral coverage."""
 
+    _validate_release_scan_root()
     collected_at = datetime.now(timezone.utc).isoformat()
     records: list[MetricRecord] = []
     for partition in partitions:
@@ -206,6 +207,22 @@ def expand_release_template(release_template: str) -> str:
         .replace("${PROJ_ARCHIVE}", archive_root)
         .replace("$PROJ_ARCHIVE", archive_root)
         .replace("%PROJ_ARCHIVE%", archive_root)
+    )
+
+
+def _validate_release_scan_root() -> None:
+    release_template = os.environ.get(RELEASE_TEMPLATE_ENV_VAR, DEFAULT_RELEASE_TEMPLATE)
+    if "PROJ_ARCHIVE" not in release_template:
+        return
+
+    archive_root = Path(os.environ.get("PROJ_ARCHIVE", DEFAULT_PROJ_ARCHIVE))
+    if archive_root.exists():
+        return
+
+    raise RuntimeError(
+        "MCSS archive root is not available: "
+        f"{archive_root.as_posix()}. Run the release scan on Linux with the archive mounted, "
+        "or provide pre-scanned MCSS records with --mcss-source."
     )
 
 
