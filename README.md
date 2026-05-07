@@ -10,17 +10,27 @@ The initial NWPNIO partition inventory is stored in `data/nwpnio_partition_inven
 The initial NWPNIO clock inventory is stored in `data/nwpnio_clock_inventory.json` and currently contains 52 active clock domains.
 The initial MCSS archive directory pattern is `$PROJ_ARCHIVE/arc/{partition}/clock_collateral/NIOA0_0P5_PRD/`, with `PROJ_ARCHIVE=/nfs/site/disks/nwp_arc_proj_archive/` for the current NWPNIO archive.
 
-CB2 metrics include:
+CB2 is tracked by hierarchy for the places where CB2 is built: SOC, MEMTOP, UIOA, UIOE, D2D1, D2D4, and C2C.
 
-- Blockages drawn percentage
-- Routes completed percentage
-- Cells placed percentage
-- CB2 release manifest status
-- Route DRC count
-- Missing expected routes
-- Orphan routes
-- Cell legality violations
-- Consumer freshness lag
+CB2 pre-push checklist metrics include:
+
+- GCXGEN checker app options
+- Checker prerequisites
+- Opens
+- Shorts
+- Missing shield
+- Downgrade quality
+- Wires drawn on track
+- DRCs
+- Floating vias
+- Shielding shorts
+- Downgrade shape outside block boundary
+- Cell-to-cell spacing
+- Locked CB2 objects
+- Overlapping CB2 cells
+- Spacing between CB2 cells and other HIPs or VAs
+
+CB2 post-push status will be tracked from partition archive runs. The initial post-push gate is archive run availability/completion per partition.
 
 MCSS metrics include:
 
@@ -96,7 +106,7 @@ The command writes a static dashboard payload to `public/data/latest.json` using
 python -m dashboard.main `
   --cb2-source path/to/cb2_metrics.json `
   --mcss-source path/to/mcss_metrics.json `
-  --partition-source path/to/partition_metrics.json `
+  --partition-source path/to/partition_archive_run_metrics.json `
   --inventory-source data/nwpnio_partition_inventory.json `
   --clock-inventory-source data/nwpnio_clock_inventory.json `
   --scan-mcss-release-tree `
@@ -104,6 +114,7 @@ python -m dashboard.main `
 ```
 
 Each JSON source may be either a list of records or an object with a top-level `records` list.
+CB2 pre-push records are hierarchy-scoped checklist records. CB2 post-push records are partition-scoped archive run records and can be supplied through `--partition-source` using the `cb2_post_push_archive_run_status` metric.
 The inventory source uses a top-level `partitions` list with `partition`, `subfc`, and `active` fields.
 The clock inventory source uses a top-level `clocks` list with `clock`, optional `display_name`, and `active` fields.
 Set `PROJ_ARCHIVE` to `/nfs/site/disks/nwp_arc_proj_archive/`, or set `MCSS_RELEASE_TEMPLATE` to override the default MCSS release directory pattern. `MCSS_CLOCKS_FILE_TEMPLATE` can override only the full clocks Tcl file pattern. Templates must include `{partition}` where the partition name belongs.
@@ -130,13 +141,15 @@ MCSS release is marked `released` only when all required collateral types are fo
 {
   "milestone": "0p5",
   "deliverable": "CB2",
-  "clock": "clk_core",
-  "partition": "partition_a",
-  "metric": "routes_completed_pct",
-  "value": 100.0,
+  "clock": null,
+  "partition": null,
+  "hierarchy": "SOC",
+  "checklist": "pre_push",
+  "metric": "cb2_post_push_archive_run_status",
+  "value": "complete",
   "source": {
     "system": "cb2_repo",
-    "uri": "cb2/clk_core/partition_a/routes_completed_pct",
+    "uri": "cb2/archive/par_test/post_push/run_123",
     "revision": "cb2_r26ww17.5",
     "run_id": "26ww17.5",
     "collected_at": "2026-05-04T10:30:00Z"
@@ -152,4 +165,4 @@ The dashboard separates file existence from readiness:
 Exists -> Complete -> Released -> Consumed -> Validated -> 0p5 Ready
 ```
 
-A clock-partition pair is 0p5 ready only when required CB2 and MCSS metrics are green. Yellow means at risk. Red means blocked. Gray means no data or not applicable.
+CB2 readiness is tracked by hierarchy checklist status. MCSS readiness is tracked by partition collateral availability. Yellow means at risk, Red means blocked or missing, and Gray means no data or not applicable.

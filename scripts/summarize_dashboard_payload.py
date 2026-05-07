@@ -12,10 +12,10 @@ from typing import Any
 
 def iter_unique_entity_metrics(payload: dict[str, Any]) -> list[dict[str, Any]]:
     metrics_by_key: dict[tuple[str | None, str | None, str], dict[str, Any]] = {}
-    for section in ("partitions", "clocks"):
+    for section in ("partitions", "clocks", "cb2_hierarchies"):
         for rollup in payload.get(section, []):
             for metric in rollup.get("metrics", []):
-                key = (metric.get("clock"), metric.get("partition"), metric.get("metric"))
+                key = (metric.get("clock"), metric.get("partition"), metric.get("hierarchy"), metric.get("metric"))
                 metrics_by_key[key] = metric
     return list(metrics_by_key.values())
 

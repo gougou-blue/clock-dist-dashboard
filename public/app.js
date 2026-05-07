@@ -18,6 +18,18 @@ const statusClassMap = {
 };
 
 const categoryOrder = ["Progress", "Quality", "Release", "Freshness"];
+const mcssStatusLabels = {
+  Green: "Available",
+  Yellow: "At Risk",
+  Red: "Missing",
+  Gray: "No Data",
+};
+const cb2StatusLabels = {
+  Green: "Passing",
+  Yellow: "Review",
+  Red: "Failing",
+  Gray: "No Data",
+};
 
 async function init() {
   bindEvents();
@@ -62,7 +74,8 @@ function render() {
   renderHeader();
   renderDeliverableCards();
   renderCards();
-  renderMatrix();
+  renderCb2Checklists();
+  renderCb2PostPushRuns();
   renderInventory();
   renderBlockers();
   renderPartitions();
@@ -80,9 +93,9 @@ function renderDeliverableCards() {
       button.setAttribute("aria-pressed", String(state.selectedDeliverable === summary.deliverable));
       button.innerHTML = `
         <span class="deliverable-title">${escapeHtml(summary.deliverable)}</span>
-        <span class="deliverable-status">${statusChip(summary.status)}</span>
-        <span class="deliverable-value">${escapeHtml(String(summary.metricCount))}</span>
-        <span class="deliverable-caption">metric records</span>
+        <span class="deliverable-status">${statusChip(summary.status, summary.statusLabel)}</span>
+        <span class="deliverable-value">${escapeHtml(String(summary.value))}</span>
+        <span class="deliverable-caption">${escapeHtml(summary.caption)}</span>
         <span class="deliverable-breakdown">${escapeHtml(summary.breakdown)}</span>
       `;
       button.addEventListener("click", () => {
@@ -99,6 +112,9 @@ function renderDeliverableCards() {
 function renderDeliverableDetails() {
   const container = document.getElementById("deliverableDetails");
   const records = filterItems(allMetricRecords().filter((record) => record.deliverable === state.selectedDeliverable));
+  const isMcss = state.selectedDeliverable === "MCSS";
+  const isCb2 = state.selectedDeliverable === "CB2";
+  const viewCopy = deliverableViewCopy(state.selectedDeliverable, records);
   const metricGroups = groupBy(records, (record) => record.metric);
   const selectedMetricRecords = state.selectedMetric
     ? records.filter((record) => record.metric === state.selectedMetric)
@@ -106,55 +122,41 @@ function renderDeliverableDetails() {
   container.hidden = false;
   container.innerHTML = `
     <div class="section-heading compact-heading">
-      <h2>${escapeHtml(state.selectedDeliverable)} Metric Details</h2>
-      <span>${records.length} shown</span>
+      <h2>${escapeHtml(viewCopy.title)}</h2>
+      <span>${escapeHtml(viewCopy.countLabel)}</span>
     </div>
     <div class="metric-summary-grid">
       ${Object.entries(metricGroups).sort(([first], [second]) => first.localeCompare(second)).map(([metric, metricRecords]) => {
-        const status = combineUiStatuses(metricRecords.map((record) => record.status));
+        const counts = countStatuses(metricRecords);
+        const summary = summarizeCoverage(counts, isMcss ? "Available" : isCb2 ? "Passing" : "Green");
+        const countLabel = isMcss
+          ? `${uniqueCount(metricRecords.map((record) => record.partition))} partitions`
+          : isCb2
+            ? cb2MetricCountLabel(metricRecords)
+            : `${metricRecords.length} total`;
+        const labels = isMcss ? mcssStatusLabels : isCb2 ? cb2StatusLabels : undefined;
         return `
-          <button class="metric-summary ${statusClass(status)} ${state.selectedMetric === metric ? "is-selected" : ""}" type="button" data-metric="${escapeHtml(metric)}">
+          <button class="metric-summary ${statusClass(summary.status)} ${state.selectedMetric === metric ? "is-selected" : ""}" type="button" data-metric="${escapeHtml(metric)}">
             <h3>${escapeHtml(metric)}</h3>
-            <div>${statusChip(status)}</div>
-            <p>${metricRecords.length} records</p>
+            <div class="metric-summary-topline">${statusChip(summary.status, summary.statusLabel)}<span>${escapeHtml(countLabel)}</span></div>
+            <div class="metric-status-breakdown">${statusCountPills(counts, labels)}</div>
           </button>
         `;
       }).join("")}
     </div>
     <div class="section-heading compact-heading">
-      <h2>${escapeHtml(state.selectedMetric || "All Metrics")} Block Breakdown</h2>
+      <h2>${escapeHtml(selectedMetricTitle(state.selectedMetric, state.selectedDeliverable))}</h2>
       <button id="allMetricsButton" class="text-button" type="button" ${state.selectedMetric ? "" : "disabled"}>All metrics</button>
     </div>
     <div class="table-wrap detail-table-wrap">
       <table>
         <thead>
-          <tr>
-            <th>Status</th>
-            <th>Category</th>
-            <th>Clock</th>
-            <th>Block</th>
-            <th>Metric</th>
-            <th>Value</th>
-            <th>Target</th>
-            <th>Source</th>
-          </tr>
+          ${metricDetailHeader(state.selectedDeliverable)}
         </thead>
         <tbody>
-          ${selectedMetricRecords.length === 0 ? `<tr><td colspan="8" class="empty-state">No matching ${escapeHtml(state.selectedDeliverable)} metric records</td></tr>` : selectedMetricRecords.map((record) => `
-            <tr>
-              <td>${statusChip(record.status)}</td>
-              <td>${escapeHtml(record.category || "-")}</td>
-              <td>${escapeHtml(record.clock || "partition")}</td>
-              <td>${escapeHtml(record.partition || "-")}</td>
-              <td title="${escapeHtml(record.description || "")}">${escapeHtml(record.metric)}</td>
-              <td>${escapeHtml(String(record.value))}</td>
-              <td>${escapeHtml(String(record.target))}</td>
-              <td class="source-cell">
-                <span>${escapeHtml(record.source?.system || "unknown")} / ${escapeHtml(record.source?.run_id || "-")}</span>
-                <small>${escapeHtml(record.source?.uri || "-")}</small>
-              </td>
-            </tr>
-          `).join("")}
+          ${selectedMetricRecords.length === 0
+            ? `<tr><td colspan="${isMcss || isCb2 ? 6 : 8}" class="empty-state">No matching ${escapeHtml(state.selectedDeliverable)} records</td></tr>`
+            : selectedMetricRecords.map((record) => metricDetailRow(record, state.selectedDeliverable)).join("")}
         </tbody>
       </table>
     </div>
@@ -195,27 +197,52 @@ function renderCards() {
   );
 }
 
-function renderMatrix() {
-  const rows = filterItems(state.payload.clock_partition_matrix || []);
-  document.getElementById("pairCount").textContent = `${rows.length} shown`;
-  const body = document.getElementById("matrixRows");
+function renderCb2Checklists() {
+  const rows = filterItems(state.payload.cb2_hierarchies || []);
+  document.getElementById("cb2ChecklistCount").textContent = `${rows.length} hierarchies shown`;
+  const body = document.getElementById("cb2ChecklistRows");
   if (rows.length === 0) {
-    body.innerHTML = `<tr><td colspan="9" class="empty-state">No matching clock-partition pairs</td></tr>`;
+    body.innerHTML = `<tr><td colspan="6" class="empty-state">No matching CB2 hierarchy checklists</td></tr>`;
     return;
   }
 
   body.replaceChildren(
     ...rows.map((rollup) => {
-      const clock = rollup.metrics.find((metric) => metric.clock)?.clock || "-";
-      const partition = rollup.metrics.find((metric) => metric.partition)?.partition || "-";
+      const counts = countStatuses(rollup.metrics || []);
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td>${escapeHtml(clock)}</td>
-        <td>${escapeHtml(partition)}</td>
-        <td>${statusChip(rollup.status, rollup.finish_state)}</td>
-        <td>${statusChip(rollup.deliverables?.CB2?.status || "Gray")}</td>
-        <td>${statusChip(rollup.deliverables?.MCSS?.status || "Gray")}</td>
-        ${categoryOrder.map((category) => `<td>${statusChip(rollup.categories?.[category]?.status || "Gray")}</td>`).join("")}
+        <td>${escapeHtml(rollup.entity_id)}</td>
+        <td>Pre-Push</td>
+        <td>${statusChip(rollup.status, checklistStatusLabel(rollup.status))}</td>
+        <td>${escapeHtml(String(counts.Green || 0))}</td>
+        <td>${escapeHtml(String(counts.Red || 0))}</td>
+        <td>${escapeHtml(String((rollup.metrics || []).length))}</td>
+      `;
+      return row;
+    })
+  );
+}
+
+function renderCb2PostPushRuns() {
+  const rows = filterItems(allMetricRecords().filter((record) => record.deliverable === "CB2" && record.checklist === "post_push"));
+  document.getElementById("cb2PostPushCount").textContent = `${uniqueCount(rows.map((record) => record.partition))} partitions shown`;
+  const body = document.getElementById("cb2PostPushRows");
+  if (rows.length === 0) {
+    body.innerHTML = `<tr><td colspan="4" class="empty-state">No CB2 post-push archive run records loaded yet</td></tr>`;
+    return;
+  }
+
+  body.replaceChildren(
+    ...rows.map((record) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${escapeHtml(record.partition || "-")}</td>
+        <td>${statusChip(record.status, checklistStatusLabel(record.status))}</td>
+        <td>${escapeHtml(record.source?.run_id || "-")}</td>
+        <td class="source-cell">
+          <span>${escapeHtml(record.source?.system || "unknown")}</span>
+          <small>${escapeHtml(record.source?.uri || "-")}</small>
+        </td>
       `;
       return row;
     })
@@ -298,7 +325,7 @@ function renderBlockers() {
       row.innerHTML = `
         <td>${statusChip(issue.status)}</td>
         <td>${escapeHtml(issue.deliverable)}</td>
-        <td>${escapeHtml(issue.clock || "partition")}</td>
+        <td>${escapeHtml(issue.hierarchy || issue.clock || "partition")}</td>
         <td>${escapeHtml(issue.partition || "-")}</td>
         <td title="${escapeHtml(issue.description || "")}">${escapeHtml(issue.metric)}</td>
         <td>${escapeHtml(String(issue.value))}</td>
@@ -361,17 +388,239 @@ function filterItems(items) {
 
 function summarizeDeliverable(deliverable) {
   const records = allMetricRecords().filter((record) => record.deliverable === deliverable);
-  const status = combineUiStatuses(records.map((record) => record.status));
-  const counts = records.reduce((accumulator, record) => {
+  if (deliverable === "CB2") {
+    return summarizeCb2Deliverable(records);
+  }
+  if (deliverable === "MCSS") {
+    return summarizeMcssDeliverable(records);
+  }
+
+  const counts = countStatuses(records);
+  const summary = summarizeCoverage(counts);
+  return {
+    deliverable,
+    status: summary.status,
+    statusLabel: summary.statusLabel,
+    value: records.length,
+    caption: "metric records",
+    breakdown: `G ${counts.Green || 0} / Y ${counts.Yellow || 0} / R ${counts.Red || 0} / N ${counts.Gray || 0}`,
+  };
+}
+
+function summarizeCb2Deliverable(records) {
+  const counts = countStatuses(records);
+  const summary = summarizeCoverage(counts, "Passing");
+  const postPushPartitions = uniqueCount(
+    records.filter((record) => record.checklist === "post_push").map((record) => record.partition)
+  );
+  const passing = counts.Green || 0;
+  const total = records.length;
+  return {
+    deliverable: "CB2",
+    status: summary.status,
+    statusLabel: summary.statusLabel,
+    value: `${passing}/${total}`,
+    caption: "pre-push checks",
+    breakdown: `Passing ${counts.Green || 0} / Failing ${counts.Red || 0} / Post-push partitions ${postPushPartitions}`,
+  };
+}
+
+function summarizeMcssDeliverable(records) {
+  const releaseRecords = records.filter((record) => record.metric === "mcss_release_status");
+  const releaseCounts = countStatuses(releaseRecords);
+  const collateralCounts = countStatuses(records);
+  const summary = summarizeCoverage(releaseCounts, "Available");
+  const released = releaseCounts.Green || 0;
+  const total = releaseRecords.length;
+  return {
+    deliverable: "MCSS",
+    status: summary.status,
+    statusLabel: summary.statusLabel,
+    value: `${released}/${total}`,
+    caption: "collateral coverage",
+    breakdown: `Available ${collateralCounts.Green || 0} / Missing ${collateralCounts.Red || 0}`,
+  };
+}
+
+function deliverableViewCopy(deliverable, records) {
+  if (deliverable === "CB2") {
+    return {
+      title: "CB2 Checklists",
+      countLabel: `${uniqueCount(records.filter((record) => record.checklist === "pre_push").map((record) => record.hierarchy))} pre-push hierarchies / ${uniqueCount(records.filter((record) => record.checklist === "post_push").map((record) => record.partition))} post-push partitions`,
+    };
+  }
+  if (deliverable === "MCSS") {
+    return {
+      title: "MCSS Collateral By Partition",
+      countLabel: `${uniqueCount(records.map((record) => record.partition))} partitions shown`,
+    };
+  }
+  return {
+    title: `${deliverable} Metric Details`,
+    countLabel: `${records.length} shown`,
+  };
+}
+
+function selectedMetricTitle(metric, deliverable) {
+  if (deliverable === "CB2") {
+    return metric || "All Pre-Push Checks";
+  }
+  if (deliverable === "MCSS") {
+    return metric || "All Collateral Gates";
+  }
+  return `${metric || "All Metrics"} Block Breakdown`;
+}
+
+function metricDetailHeader(deliverable) {
+  if (deliverable === "CB2") {
+    return `
+      <tr>
+        <th>Status</th>
+        <th>Hierarchy / Partition</th>
+        <th>Checklist</th>
+        <th>Checker</th>
+        <th>Value</th>
+        <th>Source</th>
+      </tr>
+    `;
+  }
+  if (deliverable === "MCSS") {
+    return `
+      <tr>
+        <th>Status</th>
+        <th>SubFC</th>
+        <th>Partition</th>
+        <th>Collateral Gate</th>
+        <th>Value</th>
+        <th>Source</th>
+      </tr>
+    `;
+  }
+  return `
+    <tr>
+      <th>Status</th>
+      <th>Category</th>
+      <th>Clock</th>
+      <th>Block</th>
+      <th>Metric</th>
+      <th>Value</th>
+      <th>Target</th>
+      <th>Source</th>
+    </tr>
+  `;
+}
+
+function metricDetailRow(record, deliverable) {
+  if (deliverable === "CB2") {
+    return `
+      <tr>
+        <td>${statusChip(record.status, checklistStatusLabel(record.status))}</td>
+        <td>${escapeHtml(record.hierarchy || record.partition || "-")}</td>
+        <td>${escapeHtml(checklistLabel(record.checklist))}</td>
+        <td title="${escapeHtml(record.description || "")}">${escapeHtml(record.metric)}</td>
+        <td>${escapeHtml(String(record.value))}</td>
+        <td class="source-cell">
+          <span>${escapeHtml(record.source?.system || "unknown")} / ${escapeHtml(record.source?.run_id || "-")}</span>
+          <small>${escapeHtml(record.source?.uri || "-")}</small>
+        </td>
+      </tr>
+    `;
+  }
+  if (deliverable === "MCSS") {
+    return `
+      <tr>
+        <td>${statusChip(record.status, mcssStatusLabel(record.status))}</td>
+        <td>${escapeHtml(partitionSubfc(record.partition))}</td>
+        <td>${escapeHtml(record.partition || "-")}</td>
+        <td title="${escapeHtml(record.description || "")}">${escapeHtml(record.metric)}</td>
+        <td>${escapeHtml(String(record.value))}</td>
+        <td class="source-cell">
+          <span>${escapeHtml(record.source?.system || "unknown")} / ${escapeHtml(record.source?.run_id || "-")}</span>
+          <small>${escapeHtml(record.source?.uri || "-")}</small>
+        </td>
+      </tr>
+    `;
+  }
+  return `
+    <tr>
+      <td>${statusChip(record.status)}</td>
+      <td>${escapeHtml(record.category || "-")}</td>
+      <td>${escapeHtml(record.clock || "partition")}</td>
+      <td>${escapeHtml(record.partition || "-")}</td>
+      <td title="${escapeHtml(record.description || "")}">${escapeHtml(record.metric)}</td>
+      <td>${escapeHtml(String(record.value))}</td>
+      <td>${escapeHtml(String(record.target))}</td>
+      <td class="source-cell">
+        <span>${escapeHtml(record.source?.system || "unknown")} / ${escapeHtml(record.source?.run_id || "-")}</span>
+        <small>${escapeHtml(record.source?.uri || "-")}</small>
+      </td>
+    </tr>
+  `;
+}
+
+function partitionSubfc(partition) {
+  const item = (state.payload.metadata?.partition_inventory || []).find((entry) => entry.partition === partition);
+  return item?.subfc || "-";
+}
+
+function mcssStatusLabel(status) {
+  return mcssStatusLabels[status] || status || "No Data";
+}
+
+function checklistStatusLabel(status) {
+  return cb2StatusLabels[status] || status || "No Data";
+}
+
+function checklistLabel(checklist) {
+  if (checklist === "pre_push") {
+    return "Pre-Push";
+  }
+  if (checklist === "post_push") {
+    return "Post-Push";
+  }
+  return "-";
+}
+
+function cb2MetricCountLabel(records) {
+  if (records.some((record) => record.checklist === "post_push")) {
+    return `${uniqueCount(records.map((record) => record.partition))} partitions`;
+  }
+  return `${uniqueCount(records.map((record) => record.hierarchy))} hierarchies`;
+}
+
+function countStatuses(records) {
+  return records.reduce((accumulator, record) => {
     accumulator[record.status] = (accumulator[record.status] || 0) + 1;
     return accumulator;
   }, {});
-  return {
-    deliverable,
-    status,
-    metricCount: records.length,
-    breakdown: `R ${counts.Red || 0} / Y ${counts.Yellow || 0} / G ${counts.Green || 0} / N ${counts.Gray || 0}`,
-  };
+}
+
+function statusCountPills(counts, labels = {}) {
+  return ["Green", "Yellow", "Red", "Gray"]
+    .filter((status) => counts[status])
+    .map((status) => `<span class="status-count ${statusClass(status)}">${escapeHtml(labels[status] || status)} ${escapeHtml(String(counts[status]))}</span>`)
+    .join("");
+}
+
+function uniqueCount(values) {
+  return new Set(values.filter(Boolean)).size;
+}
+
+function summarizeCoverage(counts, positiveLabel = "Green") {
+  const total = ["Green", "Yellow", "Red", "Gray"].reduce((sum, status) => sum + (counts[status] || 0), 0);
+  if (!total) {
+    return { status: "Gray", statusLabel: "No Data" };
+  }
+
+  const greenCount = counts.Green || 0;
+  const greenPercent = Math.round((greenCount / total) * 100);
+  if (greenCount === total) {
+    return { status: "Green", statusLabel: `100% ${positiveLabel}` };
+  }
+  if (greenPercent >= 80) {
+    return { status: "Yellow", statusLabel: `${greenPercent}% ${positiveLabel}` };
+  }
+  return { status: "Red", statusLabel: `${greenPercent}% ${positiveLabel}` };
 }
 
 function allMetricRecords() {
@@ -380,6 +629,15 @@ function allMetricRecords() {
   for (const partition of state.payload.partitions || []) {
     for (const metric of partition.metrics || []) {
       const key = [metric.deliverable, metric.clock || "", metric.partition || "", metric.metric].join("|");
+      if (!seen.has(key)) {
+        seen.add(key);
+        records.push(metric);
+      }
+    }
+  }
+  for (const hierarchy of state.payload.cb2_hierarchies || []) {
+    for (const metric of hierarchy.metrics || []) {
+      const key = [metric.deliverable, metric.hierarchy || "", metric.metric].join("|");
       if (!seen.has(key)) {
         seen.add(key);
         records.push(metric);

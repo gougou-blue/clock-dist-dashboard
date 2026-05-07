@@ -11,6 +11,24 @@ from ingestion import MetricRecord, load_records_from_json
 
 SOURCE_SYSTEM = "cb2_repo"
 DEFAULT_ENV_VAR = "CB2_METRICS_JSON"
+CB2_HIERARCHIES = ("SOC", "MEMTOP", "UIOA", "UIOE", "D2D1", "D2D4", "C2C")
+PRE_PUSH_CHECKS = (
+    "cb2_checker_app_options_status",
+    "cb2_pre_req_status",
+    "cb2_opens_status",
+    "cb2_shorts_status",
+    "cb2_missing_shield_status",
+    "cb2_downgrade_quality_status",
+    "cb2_wires_on_track_status",
+    "cb2_drc_status",
+    "cb2_floating_vias_status",
+    "cb2_shielding_shorts_status",
+    "cb2_downgrade_shape_boundary_status",
+    "cb2_cell_to_cell_spacing_status",
+    "cb2_objects_locked_status",
+    "cb2_cell_overlap_status",
+    "cb2_cell_to_hip_va_spacing_status",
+)
 
 
 def get_latest_metrics(source_path: str | Path | None = None) -> list[MetricRecord]:
@@ -28,39 +46,31 @@ def get_latest_metrics(source_path: str | Path | None = None) -> list[MetricReco
 
 def sample_metrics() -> list[MetricRecord]:
     collected_at = datetime.now(timezone.utc).isoformat()
-    return [
-        _record("mc_clk", "pard2d1uladda0", "blockages_drawn_pct", 100.0, "cb2_r26ww17.5", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "routes_completed_pct", 100.0, "cb2_r26ww17.5", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "cells_placed_pct", 100.0, "cb2_r26ww17.5", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "cb2_release_manifest_status", "released", "cb2_r26ww17.5", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "route_drc_count", 0, "cb2_r26ww17.5", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "missing_expected_routes_count", 0, "cb2_r26ww17.5", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "orphan_routes_count", 0, "cb2_r26ww17.5", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "cell_legality_violation_count", 0, "cb2_r26ww17.5", collected_at),
-        _record("mc_clk", "pard2d1uladda0", "cb2_consumer_runs_behind", 0, "cb2_r26ww17.5", collected_at),
-        _record("uclk_io", "paracciommu", "blockages_drawn_pct", 95.0, "cb2_r26ww17.5", collected_at),
-        _record("uclk_io", "paracciommu", "routes_completed_pct", 87.5, "cb2_r26ww17.5", collected_at),
-        _record("uclk_io", "paracciommu", "cells_placed_pct", 92.0, "cb2_r26ww17.5", collected_at),
-        _record("uclk_io", "paracciommu", "cb2_release_manifest_status", "draft", "cb2_r26ww17.5", collected_at),
-        _record("uclk_io", "paracciommu", "route_drc_count", 3, "cb2_r26ww17.5", collected_at),
-        _record("uclk_io", "paracciommu", "missing_expected_routes_count", 1, "cb2_r26ww17.5", collected_at),
-        _record("uclk_io", "paracciommu", "orphan_routes_count", 0, "cb2_r26ww17.5", collected_at),
-        _record("uclk_io", "paracciommu", "cell_legality_violation_count", 0, "cb2_r26ww17.5", collected_at),
-        _record("uclk_io", "paracciommu", "cb2_consumer_runs_behind", 1, "cb2_r26ww17.5", collected_at),
-    ]
+    records = []
+    failing_checks = {
+        "D2D4": {"cb2_drc_status", "cb2_floating_vias_status"},
+        "C2C": {"cb2_missing_shield_status"},
+    }
+    for hierarchy in CB2_HIERARCHIES:
+        for metric in PRE_PUSH_CHECKS:
+            value = "fail" if metric in failing_checks.get(hierarchy, set()) else "pass"
+            records.append(_record(hierarchy, metric, value, "cb2_r26ww17.5", collected_at))
+    return records
 
 
-def _record(clock: str, partition: str, metric: str, value: Any, revision: str, collected_at: str) -> MetricRecord:
+def _record(hierarchy: str, metric: str, value: Any, revision: str, collected_at: str) -> MetricRecord:
     return {
         "milestone": "0p5",
         "deliverable": "CB2",
-        "clock": clock,
-        "partition": partition,
+        "clock": None,
+        "partition": None,
+        "hierarchy": hierarchy,
+        "checklist": "pre_push",
         "metric": metric,
         "value": value,
         "source": {
             "system": SOURCE_SYSTEM,
-            "uri": f"cb2/{clock}/{partition}/{metric}",
+            "uri": f"cb2/{hierarchy}/pre_push/{metric}",
             "revision": revision,
             "run_id": "26ww17.5",
             "collected_at": collected_at,
@@ -72,6 +82,9 @@ def _stamp_source_defaults(records: list[MetricRecord]) -> list[MetricRecord]:
     for record in records:
         record.setdefault("deliverable", "CB2")
         record.setdefault("milestone", "0p5")
+        record.setdefault("clock", None)
+        record.setdefault("partition", None)
+        record.setdefault("checklist", "pre_push")
         record.setdefault("source", {})
         record["source"].setdefault("system", SOURCE_SYSTEM)
     return records

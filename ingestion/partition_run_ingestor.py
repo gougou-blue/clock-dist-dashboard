@@ -26,9 +26,14 @@ def sample_metrics() -> list[MetricRecord]:
 
 def _stamp_source_defaults(records: list[MetricRecord]) -> list[MetricRecord]:
     for record in records:
-        record.setdefault("deliverable", "MCSS")
+        metric_name = str(record.get("metric", ""))
+        default_deliverable = "CB2" if metric_name.startswith("cb2_") else "MCSS"
+        record.setdefault("deliverable", default_deliverable)
         record.setdefault("milestone", "0p5")
         record.setdefault("clock", None)
+        record.setdefault("hierarchy", None)
+        if default_deliverable == "CB2":
+            record.setdefault("checklist", "post_push")
         record.setdefault("source", {})
         record["source"].setdefault("system", SOURCE_SYSTEM)
     return records

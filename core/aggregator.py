@@ -24,7 +24,7 @@ class MetricsAggregator:
     ) -> None:
         self.milestone = milestone
         self.records: list[MetricRecord] = []
-        self._records_by_key: dict[tuple[str | None, str | None, str], MetricRecord] = {}
+        self._records_by_key: dict[tuple[str | None, str | None, str | None, str], MetricRecord] = {}
         self.partition_inventory: dict[str, dict[str, Any]] = {}
         self.clock_inventory: dict[str, dict[str, Any]] = {}
         self.set_partition_inventory(partition_inventory or [])
@@ -60,12 +60,23 @@ class MetricsAggregator:
         record_partitions = {record["partition"] for record in self.records if record.get("partition")}
         return sorted(set(self.partition_inventory) | record_partitions)
 
+    def hierarchy_ids(self, deliverable: str | None = None) -> list[str]:
+        """Return hierarchy IDs with metric records, optionally scoped by deliverable."""
+
+        return sorted(
+            {
+                str(record["hierarchy"])
+                for record in self.records
+                if record.get("hierarchy") and (deliverable is None or record.get("deliverable") == deliverable)
+            }
+        )
+
     def update_from_records(self, records: Iterable[MetricRecord]) -> None:
         """Merge normalized records into the current snapshot."""
 
         for raw_record in records:
             record = self._normalize_record(raw_record)
-            key = (record.get("clock"), record.get("partition"), record["metric"])
+            key = (record.get("clock"), record.get("partition"), record.get("hierarchy"), record["metric"])
             self._records_by_key[key] = record
         self.records = list(self._records_by_key.values())
 
@@ -96,6 +107,12 @@ class MetricsAggregator:
             metadata=self.partition_inventory.get(partition, {}),
         )
 
+    def rollup_hierarchy_metrics(self, hierarchy: str) -> dict[str, Any]:
+        """Return evaluated metrics and readiness for one implementation hierarchy."""
+
+        matching = [record for record in self.records if record.get("hierarchy") == hierarchy]
+        return self._build_rollup(entity_type="hierarchy", entity_id=hierarchy, records=matching)
+
     def rollup_clock_partition(self, clock: str, partition: str) -> dict[str, Any]:
         """Return evaluated metrics and readiness for a single clock-partition pair."""
 
@@ -121,12 +138,14 @@ class MetricsAggregator:
 
         pair_rollups = [self.rollup_clock_partition(clock, partition) for clock, partition in pairs]
         status_counts = defaultdict(int)
-        for rollup in pair_rollups:
-            status_counts[rollup["status"]] += 1
+        required_records = [record for record in self.evaluated_records() if get_metric_definition(record["metric"]).required_for_0p5]
+        for record in required_records:
+            status_counts[record["status"]] += 1
 
         blockers = self.blocking_issues()
-        ready_pairs = status_counts.get("Green", 0)
+        ready_pairs = sum(1 for rollup in pair_rollups if rollup["status"] == "Green")
         total_pairs = len(pair_rollups)
+        finish_status = combine_statuses([record["status"] for record in required_records])
 
         return {
             "milestone": self.milestone,
@@ -135,12 +154,20 @@ class MetricsAggregator:
             "inventory_clock_count": len(self.clock_inventory),
             "partition_count": len(partitions),
             "inventory_partition_count": len(self.partition_inventory),
+            "cb2_hierarchy_count": len(self.hierarchy_ids("CB2")),
+            "cb2_post_push_partition_count": len(
+                {
+                    record.get("partition")
+                    for record in self.records
+                    if record.get("deliverable") == "CB2" and record.get("checklist") == "post_push" and record.get("partition")
+                }
+            ),
             "clock_partition_pair_count": total_pairs,
             "ready_clock_partition_pairs": ready_pairs,
             "ready_clock_partition_pct": round((ready_pairs / total_pairs) * 100, 1) if total_pairs else 0.0,
             "status_counts": dict(status_counts),
             "open_blocker_count": len(blockers),
-            "finish_state": finish_state(combine_statuses([rollup["status"] for rollup in pair_rollups])),
+            "finish_state": finish_state(finish_status),
         }
 
     def blocking_issues(self) -> list[MetricRecord]:
@@ -150,7 +177,10 @@ class MetricsAggregator:
         for record in self.evaluated_records():
             if record["status"] == "Red":
                 issues.append(record)
-        return sorted(issues, key=lambda item: (item.get("partition") or "", item.get("clock") or "", item["metric"]))
+        return sorted(
+            issues,
+            key=lambda item: (item.get("hierarchy") or "", item.get("partition") or "", item.get("clock") or "", item["metric"]),
+        )
 
     def evaluated_records(self) -> list[MetricRecord]:
         """Return every raw record with metric definition details and evaluated status."""
@@ -233,6 +263,8 @@ class MetricsAggregator:
         normalized.setdefault("deliverable", metric.deliverable)
         normalized.setdefault("clock", None)
         normalized.setdefault("partition", None)
+        normalized.setdefault("hierarchy", None)
+        normalized.setdefault("checklist", None)
         normalized.setdefault("source", {})
         normalized["source"].setdefault("system", "unknown")
         normalized["source"].setdefault("uri", None)

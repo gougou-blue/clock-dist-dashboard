@@ -314,6 +314,37 @@ input:focus-visible {
   font-weight: 650;
 }
 
+.metric-summary-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.metric-status-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.status-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1;
+}
+
 .text-button {
   min-height: 30px;
   padding: 4px 10px;

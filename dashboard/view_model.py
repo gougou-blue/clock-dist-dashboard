@@ -13,6 +13,7 @@ def format_for_ui(aggregator: MetricsAggregator) -> dict[str, Any]:
 
     clocks = aggregator.clock_ids()
     partitions = aggregator.partition_ids()
+    cb2_hierarchies = aggregator.hierarchy_ids("CB2")
     pairs = sorted(
         {
             (record["clock"], record["partition"])
@@ -27,9 +28,9 @@ def format_for_ui(aggregator: MetricsAggregator) -> dict[str, Any]:
     return {
         "summary": summary,
         "cards": _summary_cards(summary),
+        "cb2_hierarchies": [aggregator.rollup_hierarchy_metrics(hierarchy) for hierarchy in cb2_hierarchies],
         "clocks": [aggregator.rollup_clock_metrics(clock) for clock in clocks],
         "partitions": [aggregator.rollup_partition_metrics(partition) for partition in partitions],
-        "clock_partition_matrix": pair_rollups,
         "blocking_issues": aggregator.blocking_issues(),
         "metadata": {
             "schema_version": "0.1.0",
@@ -45,23 +46,23 @@ def format_for_ui(aggregator: MetricsAggregator) -> dict[str, Any]:
 def _summary_cards(summary: dict[str, Any]) -> list[dict[str, Any]]:
     return [
         {
-            "label": "0p5 Ready Pairs",
-            "value": f"{summary['ready_clock_partition_pairs']}/{summary['clock_partition_pair_count']}",
-            "status": "Green" if summary["open_blocker_count"] == 0 else "Red",
+            "label": "CB2 Hierarchies",
+            "value": summary.get("cb2_hierarchy_count", 0),
+            "status": "Gray",
         },
         {
-            "label": "Ready Percent",
-            "value": f"{summary['ready_clock_partition_pct']}%",
-            "status": summary.get("finish_state", "No Data"),
+            "label": "MCSS Partitions",
+            "value": summary.get("inventory_partition_count", summary["partition_count"]),
+            "status": "Gray",
+        },
+        {
+            "label": "CB2 Post-Push Runs",
+            "value": summary.get("cb2_post_push_partition_count", 0),
+            "status": "Gray",
         },
         {
             "label": "Tracked Clocks",
             "value": summary.get("inventory_clock_count", summary["clock_count"]),
-            "status": "Gray",
-        },
-        {
-            "label": "Tracked Partitions",
-            "value": summary.get("inventory_partition_count", summary["partition_count"]),
             "status": "Gray",
         },
         {

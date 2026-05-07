@@ -36,31 +36,46 @@
       </div>
       <label class="filter-control">
         <span>Filter</span>
-        <input id="searchInput" type="search" placeholder="clock, partition, metric">
+        <input id="searchInput" type="search" placeholder="hierarchy, partition, check">
       </label>
     </section>
 
     <section id="overviewView" class="dashboard-view is-active" aria-label="Overview">
       <div class="section-heading">
-        <h2>Known Clock-Partition Readiness</h2>
-        <span id="pairCount"></span>
+        <h2>CB2 GCXGEN Checklists</h2>
+        <span id="cb2ChecklistCount"></span>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Clock</th>
-              <th>Partition</th>
+              <th>Hierarchy</th>
+              <th>Checklist</th>
               <th>Status</th>
-              <th>CB2</th>
-              <th>MCSS</th>
-              <th>Progress</th>
-              <th>Quality</th>
-              <th>Release</th>
-              <th>Freshness</th>
+              <th>Available</th>
+              <th>Missing</th>
+              <th>Total Checks</th>
             </tr>
           </thead>
-          <tbody id="matrixRows"></tbody>
+          <tbody id="cb2ChecklistRows"></tbody>
+        </table>
+      </div>
+
+      <div class="section-heading section-heading-spaced">
+        <h2>CB2 Post-Push Archive Runs</h2>
+        <span id="cb2PostPushCount"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Partition</th>
+              <th>Status</th>
+              <th>Run</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody id="cb2PostPushRows"></tbody>
         </table>
       </div>
 
@@ -82,7 +97,7 @@
             <tr>
               <th>Status</th>
               <th>Deliverable</th>
-              <th>Clock</th>
+              <th>Hierarchy / Clock</th>
               <th>Partition</th>
               <th>Metric</th>
               <th>Value</th>
@@ -108,6 +123,6 @@
     <span class="status-chip"><span class="status-dot"></span><span class="status-label"></span></span>
   </template>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=20260506-cb2-post-push-archive-runs"></script>
 </body>
 </html>

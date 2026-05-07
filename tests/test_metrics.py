@@ -12,17 +12,10 @@ from ingestion.partition_inventory_ingestor import get_partition_inventory
 
 
 class StatusEvaluationTests(unittest.TestCase):
-    def test_percent_complete_thresholds(self) -> None:
-        metric = get_metric_definition("routes_completed_pct")
-        self.assertEqual(evaluate_status(metric, 100.0), GREEN)
-        self.assertEqual(evaluate_status(metric, 95.0), YELLOW)
-        self.assertEqual(evaluate_status(metric, 60.0), RED)
-
-    def test_zero_count_thresholds(self) -> None:
-        metric = get_metric_definition("route_drc_count")
-        self.assertEqual(evaluate_status(metric, 0), GREEN)
-        self.assertEqual(evaluate_status(metric, 2), YELLOW)
-        self.assertEqual(evaluate_status(metric, 3), RED)
+    def test_cb2_checklist_status_values(self) -> None:
+        metric = get_metric_definition("cb2_drc_status")
+        self.assertEqual(evaluate_status(metric, "pass"), GREEN)
+        self.assertEqual(evaluate_status(metric, "fail"), RED)
 
     def test_release_status_values(self) -> None:
         metric = get_metric_definition("mcss_release_status")
@@ -30,9 +23,14 @@ class StatusEvaluationTests(unittest.TestCase):
         self.assertEqual(evaluate_status(metric, "pending"), YELLOW)
         self.assertEqual(evaluate_status(metric, "not_released"), RED)
 
+    def test_cb2_post_push_archive_run_status_values(self) -> None:
+        metric = get_metric_definition("cb2_post_push_archive_run_status")
+        self.assertEqual(evaluate_status(metric, "complete"), GREEN)
+        self.assertEqual(evaluate_status(metric, "missing"), RED)
+
 
 class AggregatorTests(unittest.TestCase):
-    def test_sample_data_has_ready_and_blocked_pairs(self) -> None:
+    def test_sample_data_has_passing_and_failing_cb2_hierarchies(self) -> None:
         aggregator = MetricsAggregator()
         aggregator.update_from_records(
             combine_source_records(
@@ -42,11 +40,11 @@ class AggregatorTests(unittest.TestCase):
             )
         )
 
-        ready_pair = aggregator.rollup_clock_partition("mc_clk", "pard2d1uladda0")
-        blocked_pair = aggregator.rollup_clock_partition("uclk_io", "paracciommu")
+        soc = aggregator.rollup_hierarchy_metrics("SOC")
+        d2d4 = aggregator.rollup_hierarchy_metrics("D2D4")
 
-        self.assertEqual(ready_pair["finish_state"], "0p5 Ready")
-        self.assertEqual(blocked_pair["finish_state"], "Blocked")
+        self.assertEqual(soc["finish_state"], "0p5 Ready")
+        self.assertEqual(d2d4["finish_state"], "Blocked")
 
     def test_view_model_contains_summary_cards_and_blockers(self) -> None:
         aggregator = MetricsAggregator()
@@ -62,8 +60,9 @@ class AggregatorTests(unittest.TestCase):
 
         self.assertIn("summary", payload)
         self.assertIn("cards", payload)
+        self.assertIn("cb2_hierarchies", payload)
         self.assertGreater(payload["summary"]["open_blocker_count"], 0)
-        self.assertEqual(payload["summary"]["clock_count"], 2)
+        self.assertEqual(payload["summary"]["cb2_hierarchy_count"], 7)
         self.assertEqual(payload["summary"]["partition_count"], 2)
 
     def test_clock_inventory_is_included_without_metric_records(self) -> None:

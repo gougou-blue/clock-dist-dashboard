@@ -9,6 +9,7 @@ from unittest.mock import patch
 from ingestion import load_records_from_json
 from ingestion.clock_inventory_ingestor import get_clock_inventory
 from ingestion.clock_repo_ingestor import get_latest_metrics as get_cb2_metrics
+from ingestion.partition_run_ingestor import get_latest_metrics as get_partition_run_metrics
 from ingestion.partition_inventory_ingestor import get_partition_inventory
 from ingestion.stamping_collateral_ingestor import get_latest_metrics as get_mcss_metrics
 from ingestion.stamping_collateral_ingestor import expand_release_template
@@ -23,10 +24,9 @@ class IngestionTests(unittest.TestCase):
                 json.dumps(
                     [
                         {
-                            "metric": "routes_completed_pct",
-                            "clock": "clk_test",
-                            "partition": "partition_test",
-                            "value": 100.0,
+                            "metric": "cb2_drc_status",
+                            "hierarchy": "SOC",
+                            "value": "pass",
                         }
                     ]
                 ),
@@ -36,7 +36,7 @@ class IngestionTests(unittest.TestCase):
             records = load_records_from_json(source)
 
         self.assertEqual(len(records), 1)
-        self.assertEqual(records[0]["metric"], "routes_completed_pct")
+        self.assertEqual(records[0]["metric"], "cb2_drc_status")
 
     def test_load_records_from_records_object(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -46,10 +46,9 @@ class IngestionTests(unittest.TestCase):
                     {
                         "records": [
                             {
-                                "metric": "blockages_drawn_pct",
-                                "clock": "clk_test",
-                                "partition": "partition_test",
-                                "value": 90.0,
+                                "metric": "cb2_opens_status",
+                                "hierarchy": "SOC",
+                                "value": "pass",
                             }
                         ]
                     }
@@ -60,7 +59,7 @@ class IngestionTests(unittest.TestCase):
             records = load_records_from_json(source)
 
         self.assertEqual(len(records), 1)
-        self.assertEqual(records[0]["value"], 90.0)
+        self.assertEqual(records[0]["value"], "pass")
 
     def test_cb2_ingestor_stamps_source_defaults(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -69,10 +68,9 @@ class IngestionTests(unittest.TestCase):
                 json.dumps(
                     [
                         {
-                            "metric": "routes_completed_pct",
-                            "clock": "clk_test",
-                            "partition": "partition_test",
-                            "value": 100.0,
+                            "metric": "cb2_drc_status",
+                            "hierarchy": "SOC",
+                            "value": "pass",
                         }
                     ]
                 ),
@@ -82,7 +80,30 @@ class IngestionTests(unittest.TestCase):
             records = get_cb2_metrics(source)
 
         self.assertEqual(records[0]["deliverable"], "CB2")
+        self.assertEqual(records[0]["checklist"], "pre_push")
         self.assertEqual(records[0]["source"]["system"], "cb2_repo")
+
+    def test_partition_run_ingestor_stamps_cb2_post_push_records(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "partition_runs.json"
+            source.write_text(
+                json.dumps(
+                    [
+                        {
+                            "metric": "cb2_post_push_archive_run_status",
+                            "partition": "par_test",
+                            "value": "complete",
+                        }
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            records = get_partition_run_metrics(source)
+
+        self.assertEqual(records[0]["deliverable"], "CB2")
+        self.assertEqual(records[0]["checklist"], "post_push")
+        self.assertEqual(records[0]["source"]["system"], "partition_runs")
 
     def test_nwpnio_partition_inventory_loads_and_normalizes_names(self) -> None:
         inventory = get_partition_inventory()
