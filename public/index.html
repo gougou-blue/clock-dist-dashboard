@@ -32,7 +32,6 @@
       <div class="segmented-control" role="tablist" aria-label="Dashboard view">
         <button class="tab-button is-active" data-view="overview" role="tab" aria-selected="true">Overview</button>
         <button class="tab-button" data-view="blockers" role="tab" aria-selected="false">Blockers</button>
-        <button class="tab-button" data-view="partitions" role="tab" aria-selected="false">Partitions</button>
       </div>
       <label class="filter-control">
         <span>Filter</span>
@@ -41,51 +40,33 @@
     </section>
 
     <section id="overviewView" class="dashboard-view is-active" aria-label="Overview">
-      <div class="section-heading">
-        <h2>CB2 GCXGEN Checklists</h2>
-        <span id="cb2ChecklistCount"></span>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Hierarchy</th>
-              <th>Checklist</th>
-              <th>Status</th>
-              <th>Available</th>
-              <th>Missing</th>
-              <th>Total Checks</th>
-            </tr>
-          </thead>
-          <tbody id="cb2ChecklistRows"></tbody>
-        </table>
-      </div>
+      <details class="dashboard-disclosure" open>
+        <summary>
+          <span>CB2 GCXGEN Pre-Push Checklists</span>
+          <span id="cb2ChecklistCount" class="subfc-count"></span>
+        </summary>
+        <div class="table-wrap disclosure-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Hierarchy</th>
+                <th>Checklist</th>
+                <th>Status</th>
+                <th>Passing</th>
+                <th>Failing</th>
+                <th>Total Checks</th>
+              </tr>
+            </thead>
+            <tbody id="cb2ChecklistRows"></tbody>
+          </table>
+        </div>
+      </details>
 
       <div class="section-heading section-heading-spaced">
-        <h2>CB2 Post-Push Archive Runs</h2>
+        <h2>CB2 Post-Push Archive Runs By SubFC</h2>
         <span id="cb2PostPushCount"></span>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Partition</th>
-              <th>Status</th>
-              <th>Check</th>
-              <th>Value</th>
-              <th>Run</th>
-              <th>Source</th>
-            </tr>
-          </thead>
-          <tbody id="cb2PostPushRows"></tbody>
-        </table>
-      </div>
-
-      <div class="section-heading section-heading-spaced">
-        <h2>NWPNIO Partition Inventory By SubFC</h2>
-        <span id="inventoryCount"></span>
-      </div>
-      <div id="inventoryGroups" class="subfc-groups"></div>
+      <div id="cb2PostPushGroups" class="subfc-groups"></div>
     </section>
 
     <section id="blockersView" class="dashboard-view" aria-label="Blocking issues">
@@ -125,6 +106,6 @@
     <span class="status-chip"><span class="status-dot"></span><span class="status-label"></span></span>
   </template>
 
-  <script src="app.js?v=20260506-cb2-post-push-checklist-visible"></script>
+  <script src="app.js?v=20260506-cb2-only-collapsible-postpush"></script>
 </body>
 </html>

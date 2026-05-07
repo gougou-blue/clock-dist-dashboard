@@ -75,14 +75,13 @@ function render() {
   renderDeliverableCards();
   renderCards();
   renderCb2Checklists();
-  renderCb2PostPushRuns();
-  renderInventory();
+  renderCb2PostPushBySubfc();
   renderBlockers();
   renderPartitions();
 }
 
 function renderDeliverableCards() {
-  const summaries = ["CB2", "MCSS"].map((deliverable) => summarizeDeliverable(deliverable));
+  const summaries = ["CB2"].map((deliverable) => summarizeDeliverable(deliverable));
   const container = document.getElementById("deliverableCards");
   container.replaceChildren(
     ...summaries.map((summary) => {
@@ -184,7 +183,7 @@ function renderHeader() {
 function renderCards() {
   const container = document.getElementById("summaryCards");
   container.replaceChildren(
-    ...state.payload.cards.map((card) => {
+    ...cb2PageCards().map((card) => {
       const element = document.createElement("article");
       element.className = "kpi-card";
       element.innerHTML = `
@@ -195,6 +194,40 @@ function renderCards() {
       return element;
     })
   );
+}
+
+function cb2PageCards() {
+  const cb2Records = allMetricRecords().filter((record) => record.deliverable === "CB2");
+  const prePushRecords = cb2Records.filter((record) => record.checklist === "pre_push");
+  const postPushRecords = cb2Records.filter((record) => record.checklist === "post_push");
+  const blockers = (state.payload.blocking_issues || []).filter((issue) => issue.deliverable === "CB2");
+  return [
+    {
+      label: "Pre-Push Hierarchies",
+      value: uniqueCount(prePushRecords.map((record) => record.hierarchy)),
+      status: "Gray",
+    },
+    {
+      label: "Pre-Push Checks",
+      value: prePushRecords.length,
+      status: summarizeCoverage(countStatuses(prePushRecords), "Passing").status,
+    },
+    {
+      label: "Post-Push Partitions",
+      value: uniqueCount(postPushRecords.map((record) => record.partition)),
+      status: "Gray",
+    },
+    {
+      label: "Post-Push Checks",
+      value: `${cb2ChecklistDefinitions("post_push").length} defined`,
+      status: "Gray",
+    },
+    {
+      label: "CB2 Open Issues",
+      value: blockers.length,
+      status: blockers.length ? "Red" : "Green",
+    },
+  ];
 }
 
 function renderCb2Checklists() {
@@ -223,105 +256,47 @@ function renderCb2Checklists() {
   );
 }
 
-function renderCb2PostPushRuns() {
+function renderCb2PostPushBySubfc() {
   const rows = filterItems(allMetricRecords().filter((record) => record.deliverable === "CB2" && record.checklist === "post_push"));
-  const definitions = filterItems(cb2ChecklistDefinitions("post_push"));
-  document.getElementById("cb2PostPushCount").textContent = rows.length
-    ? `${uniqueCount(rows.map((record) => record.partition))} partitions shown`
-    : `${definitions.length} checks defined / 0 partitions loaded`;
-  const body = document.getElementById("cb2PostPushRows");
-  if (rows.length === 0) {
-    body.replaceChildren(
-      ...definitions.map((definition) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>archive runs</td>
-          <td>${statusChip("Gray", "No Data")}</td>
-          <td title="${escapeHtml(definition.description || "")}">${escapeHtml(definition.label)}</td>
-          <td>-</td>
-          <td>-</td>
-          <td class="source-cell">
-            <span>partition archive runs</span>
-            <small>${escapeHtml(definition.metric)}</small>
-          </td>
-        `;
-        return row;
-      })
-    );
-    return;
-  }
-
-  body.replaceChildren(
-    ...rows.map((record) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${escapeHtml(record.partition || "-")}</td>
-        <td>${statusChip(record.status, checklistStatusLabel(record.status))}</td>
-        <td title="${escapeHtml(record.description || metricDescription(record.metric))}">${escapeHtml(metricLabel(record.metric))}</td>
-        <td>${escapeHtml(String(record.value))}</td>
-        <td>${escapeHtml(record.source?.run_id || "-")}</td>
-        <td class="source-cell">
-          <span>${escapeHtml(record.source?.system || "unknown")}</span>
-          <small>${escapeHtml(record.source?.uri || "-")}</small>
-        </td>
-      `;
-      return row;
-    })
-  );
-}
-
-function renderInventory() {
-  const partitionsById = new Map((state.payload.partitions || []).map((partition) => [partition.entity_id, partition]));
+  const definitions = cb2ChecklistDefinitions("post_push");
   const inventory = filterItems(state.payload.metadata?.partition_inventory || []);
-  document.getElementById("inventoryCount").textContent = `${inventory.length} shown`;
-  const container = document.getElementById("inventoryGroups");
+  const groups = groupBy(inventory, (partition) => partition.subfc || "unknown");
+  document.getElementById("cb2PostPushCount").textContent = rows.length
+    ? `${uniqueCount(rows.map((record) => record.partition))} partitions loaded`
+    : `${definitions.length} checks defined / 0 partitions loaded`;
+  const container = document.getElementById("cb2PostPushGroups");
   if (inventory.length === 0) {
-    container.innerHTML = `<div class="empty-state">No matching inventoried partitions</div>`;
+    container.innerHTML = `<div class="empty-state">No matching SubFC groups</div>`;
     return;
   }
 
-  const groups = groupBy(inventory, (partition) => partition.subfc || "unknown");
   container.replaceChildren(
     ...Object.entries(groups).sort(([first], [second]) => first.localeCompare(second)).map(([subfc, partitions]) => {
+      const partitionNames = new Set(partitions.map((partition) => partition.partition));
+      const groupRecords = rows.filter((record) => partitionNames.has(record.partition));
       const group = document.createElement("details");
       group.className = "subfc-group";
-      const statuses = partitions.map((partition) => partitionsById.get(partition.partition)?.status || "Gray");
-      const status = combineUiStatuses(statuses);
-      const metricRecordCount = partitions.reduce((total, partition) => {
-        return total + (partitionsById.get(partition.partition)?.metrics?.length || 0);
-      }, 0);
       group.innerHTML = `
         <summary>
           <span class="subfc-title">${escapeHtml(subfc)}</span>
           <span class="subfc-count">${partitions.length} partitions</span>
-          <span class="subfc-count">${metricRecordCount} metric records</span>
-          ${statusChip(status)}
+          <span class="subfc-count">${groupRecords.length || definitions.length} checks</span>
+          ${statusChip(groupRecords.length ? combineUiStatuses(groupRecords.map((record) => record.status)) : "Gray", groupRecords.length ? undefined : "No Data")}
         </summary>
         <div class="table-wrap subfc-table-wrap">
           <table>
             <thead>
               <tr>
                 <th>Partition</th>
-                <th>Metric Status</th>
-                <th>Metric Records</th>
-                <th>Raw Name</th>
+                <th>Status</th>
+                <th>Check</th>
+                <th>Value</th>
+                <th>Run</th>
+                <th>Source</th>
               </tr>
             </thead>
             <tbody>
-              ${partitions.map((partition) => {
-                const rollup = partitionsById.get(partition.partition);
-                const rawName = partition.raw_partition && partition.raw_partition !== partition.partition
-                  ? partition.raw_partition
-                  : "-";
-                return `
-                  <tr>
-                    <td>${escapeHtml(partition.partition)}</td>
-                    <td>${statusChip(rollup?.status || "Gray", rollup?.finish_state || "No Data")}</td>
-                    <td>${escapeHtml(String(rollup?.metrics?.length || 0))}</td>
-                    <td>${escapeHtml(rawName)}</td>
-                  </tr>
-                `;
-              }).join("")}
+              ${groupRecords.length ? groupRecords.map((record) => cb2PostPushRow(record)).join("") : definitions.map((definition) => cb2PostPushDefinitionRow(definition)).join("")}
             </tbody>
           </table>
         </div>
@@ -331,8 +306,40 @@ function renderInventory() {
   );
 }
 
+function cb2PostPushRow(record) {
+  return `
+    <tr>
+      <td>${escapeHtml(record.partition || "-")}</td>
+      <td>${statusChip(record.status, checklistStatusLabel(record.status))}</td>
+      <td title="${escapeHtml(record.description || metricDescription(record.metric))}">${escapeHtml(metricLabel(record.metric))}</td>
+      <td>${escapeHtml(String(record.value))}</td>
+      <td>${escapeHtml(record.source?.run_id || "-")}</td>
+      <td class="source-cell">
+        <span>${escapeHtml(record.source?.system || "unknown")}</span>
+        <small>${escapeHtml(record.source?.uri || "-")}</small>
+      </td>
+    </tr>
+  `;
+}
+
+function cb2PostPushDefinitionRow(definition) {
+  return `
+    <tr>
+      <td>archive runs</td>
+      <td>${statusChip("Gray", "No Data")}</td>
+      <td title="${escapeHtml(definition.description || "")}">${escapeHtml(definition.label)}</td>
+      <td>-</td>
+      <td>-</td>
+      <td class="source-cell">
+        <span>partition archive runs</span>
+        <small>${escapeHtml(definition.metric)}</small>
+      </td>
+    </tr>
+  `;
+}
+
 function renderBlockers() {
-  const rows = filterItems(state.payload.blocking_issues || []);
+  const rows = filterItems((state.payload.blocking_issues || []).filter((issue) => issue.deliverable === "CB2"));
   document.getElementById("blockerCount").textContent = `${rows.length} shown`;
   const body = document.getElementById("blockerRows");
   if (rows.length === 0) {
