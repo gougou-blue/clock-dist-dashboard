@@ -90,9 +90,9 @@ class IngestionTests(unittest.TestCase):
                 json.dumps(
                     [
                         {
-                            "metric": "cb2_post_push_archive_run_status",
+                            "metric": "cb2_post_push_opens_status",
                             "partition": "par_test",
-                            "value": "complete",
+                            "value": "pass",
                         }
                     ]
                 ),

@@ -30,7 +30,16 @@ CB2 pre-push checklist metrics include:
 - Overlapping CB2 cells
 - Spacing between CB2 cells and other HIPs or VAs
 
-CB2 post-push status will be tracked from partition archive runs. The initial post-push gate is archive run availability/completion per partition.
+CB2 post-push checklist metrics are partition-scoped and sourced from archive runs:
+
+- Opens
+- Shorts
+- Extra objects
+- Shield tapping
+- Missing shield
+- Viewlogic check
+- Attribute conflict
+- CRB mismatch
 
 MCSS metrics include:
 
@@ -114,7 +123,7 @@ python -m dashboard.main `
 ```
 
 Each JSON source may be either a list of records or an object with a top-level `records` list.
-CB2 pre-push records are hierarchy-scoped checklist records. CB2 post-push records are partition-scoped archive run records and can be supplied through `--partition-source` using the `cb2_post_push_archive_run_status` metric.
+CB2 pre-push records are hierarchy-scoped checklist records. CB2 post-push records are partition-scoped archive run records and can be supplied through `--partition-source` using the `cb2_post_push_*_status` metrics, such as `cb2_post_push_opens_status` or `cb2_post_push_crb_mismatch_status`.
 The inventory source uses a top-level `partitions` list with `partition`, `subfc`, and `active` fields.
 The clock inventory source uses a top-level `clocks` list with `clock`, optional `display_name`, and `active` fields.
 Set `PROJ_ARCHIVE` to `/nfs/site/disks/nwp_arc_proj_archive/`, or set `MCSS_RELEASE_TEMPLATE` to override the default MCSS release directory pattern. `MCSS_CLOCKS_FILE_TEMPLATE` can override only the full clocks Tcl file pattern. Templates must include `{partition}` where the partition name belongs.
@@ -145,11 +154,11 @@ MCSS release is marked `released` only when all required collateral types are fo
   "partition": null,
   "hierarchy": "SOC",
   "checklist": "pre_push",
-  "metric": "cb2_post_push_archive_run_status",
-  "value": "complete",
+  "metric": "cb2_drc_status",
+  "value": "pass",
   "source": {
     "system": "cb2_repo",
-    "uri": "cb2/archive/par_test/post_push/run_123",
+    "uri": "cb2/SOC/pre_push/cb2_drc_status",
     "revision": "cb2_r26ww17.5",
     "run_id": "26ww17.5",
     "collected_at": "2026-05-04T10:30:00Z"

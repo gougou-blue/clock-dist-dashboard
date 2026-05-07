@@ -228,7 +228,7 @@ function renderCb2PostPushRuns() {
   document.getElementById("cb2PostPushCount").textContent = `${uniqueCount(rows.map((record) => record.partition))} partitions shown`;
   const body = document.getElementById("cb2PostPushRows");
   if (rows.length === 0) {
-    body.innerHTML = `<tr><td colspan="4" class="empty-state">No CB2 post-push archive run records loaded yet</td></tr>`;
+    body.innerHTML = `<tr><td colspan="6" class="empty-state">No CB2 post-push archive run records loaded yet</td></tr>`;
     return;
   }
 
@@ -238,6 +238,8 @@ function renderCb2PostPushRuns() {
       row.innerHTML = `
         <td>${escapeHtml(record.partition || "-")}</td>
         <td>${statusChip(record.status, checklistStatusLabel(record.status))}</td>
+        <td title="${escapeHtml(record.description || "")}">${escapeHtml(record.metric)}</td>
+        <td>${escapeHtml(String(record.value))}</td>
         <td>${escapeHtml(record.source?.run_id || "-")}</td>
         <td class="source-cell">
           <span>${escapeHtml(record.source?.system || "unknown")}</span>

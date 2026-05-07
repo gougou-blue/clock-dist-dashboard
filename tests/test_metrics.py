@@ -23,9 +23,9 @@ class StatusEvaluationTests(unittest.TestCase):
         self.assertEqual(evaluate_status(metric, "pending"), YELLOW)
         self.assertEqual(evaluate_status(metric, "not_released"), RED)
 
-    def test_cb2_post_push_archive_run_status_values(self) -> None:
-        metric = get_metric_definition("cb2_post_push_archive_run_status")
-        self.assertEqual(evaluate_status(metric, "complete"), GREEN)
+    def test_cb2_post_push_check_status_values(self) -> None:
+        metric = get_metric_definition("cb2_post_push_opens_status")
+        self.assertEqual(evaluate_status(metric, "pass"), GREEN)
         self.assertEqual(evaluate_status(metric, "missing"), RED)
 
 
