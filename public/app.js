@@ -137,7 +137,7 @@ function renderDeliverableDetails() {
         const labels = isMcss ? mcssStatusLabels : isCb2 ? cb2StatusLabels : undefined;
         return `
           <button class="metric-summary ${statusClass(summary.status)} ${state.selectedMetric === metric ? "is-selected" : ""}" type="button" data-metric="${escapeHtml(metric)}">
-            <h3>${escapeHtml(metric)}</h3>
+            <h3>${escapeHtml(metricLabel(metric))}</h3>
             <div class="metric-summary-topline">${statusChip(summary.status, summary.statusLabel)}<span>${escapeHtml(countLabel)}</span></div>
             <div class="metric-status-breakdown">${statusCountPills(counts, labels)}</div>
           </button>
@@ -225,10 +225,29 @@ function renderCb2Checklists() {
 
 function renderCb2PostPushRuns() {
   const rows = filterItems(allMetricRecords().filter((record) => record.deliverable === "CB2" && record.checklist === "post_push"));
-  document.getElementById("cb2PostPushCount").textContent = `${uniqueCount(rows.map((record) => record.partition))} partitions shown`;
+  const definitions = filterItems(cb2ChecklistDefinitions("post_push"));
+  document.getElementById("cb2PostPushCount").textContent = rows.length
+    ? `${uniqueCount(rows.map((record) => record.partition))} partitions shown`
+    : `${definitions.length} checks defined / 0 partitions loaded`;
   const body = document.getElementById("cb2PostPushRows");
   if (rows.length === 0) {
-    body.innerHTML = `<tr><td colspan="6" class="empty-state">No CB2 post-push archive run records loaded yet</td></tr>`;
+    body.replaceChildren(
+      ...definitions.map((definition) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>archive runs</td>
+          <td>${statusChip("Gray", "No Data")}</td>
+          <td title="${escapeHtml(definition.description || "")}">${escapeHtml(definition.label)}</td>
+          <td>-</td>
+          <td>-</td>
+          <td class="source-cell">
+            <span>partition archive runs</span>
+            <small>${escapeHtml(definition.metric)}</small>
+          </td>
+        `;
+        return row;
+      })
+    );
     return;
   }
 
@@ -238,7 +257,7 @@ function renderCb2PostPushRuns() {
       row.innerHTML = `
         <td>${escapeHtml(record.partition || "-")}</td>
         <td>${statusChip(record.status, checklistStatusLabel(record.status))}</td>
-        <td title="${escapeHtml(record.description || "")}">${escapeHtml(record.metric)}</td>
+        <td title="${escapeHtml(record.description || metricDescription(record.metric))}">${escapeHtml(metricLabel(record.metric))}</td>
         <td>${escapeHtml(String(record.value))}</td>
         <td>${escapeHtml(record.source?.run_id || "-")}</td>
         <td class="source-cell">
@@ -519,7 +538,7 @@ function metricDetailRow(record, deliverable) {
         <td>${statusChip(record.status, checklistStatusLabel(record.status))}</td>
         <td>${escapeHtml(record.hierarchy || record.partition || "-")}</td>
         <td>${escapeHtml(checklistLabel(record.checklist))}</td>
-        <td title="${escapeHtml(record.description || "")}">${escapeHtml(record.metric)}</td>
+        <td title="${escapeHtml(record.description || metricDescription(record.metric))}">${escapeHtml(metricLabel(record.metric))}</td>
         <td>${escapeHtml(String(record.value))}</td>
         <td class="source-cell">
           <span>${escapeHtml(record.source?.system || "unknown")} / ${escapeHtml(record.source?.run_id || "-")}</span>
@@ -563,6 +582,25 @@ function metricDetailRow(record, deliverable) {
 function partitionSubfc(partition) {
   const item = (state.payload.metadata?.partition_inventory || []).find((entry) => entry.partition === partition);
   return item?.subfc || "-";
+}
+
+function cb2ChecklistDefinitions(checklist) {
+  return state.payload.metadata?.cb2_checklists?.[checklist] || [];
+}
+
+function cb2ChecklistItems() {
+  const checklists = state.payload.metadata?.cb2_checklists || {};
+  return [...(checklists.pre_push || []), ...(checklists.post_push || [])];
+}
+
+function metricLabel(metric) {
+  const item = cb2ChecklistItems().find((definition) => definition.metric === metric);
+  return item?.label || metric;
+}
+
+function metricDescription(metric) {
+  const item = cb2ChecklistItems().find((definition) => definition.metric === metric);
+  return item?.description || "";
 }
 
 function mcssStatusLabel(status) {

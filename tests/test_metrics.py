@@ -61,6 +61,11 @@ class AggregatorTests(unittest.TestCase):
         self.assertIn("summary", payload)
         self.assertIn("cards", payload)
         self.assertIn("cb2_hierarchies", payload)
+        self.assertEqual(len(payload["metadata"]["cb2_checklists"]["post_push"]), 8)
+        self.assertIn(
+            "cb2_post_push_crb_mismatch_status",
+            {item["metric"] for item in payload["metadata"]["cb2_checklists"]["post_push"]},
+        )
         self.assertGreater(payload["summary"]["open_blocker_count"], 0)
         self.assertEqual(payload["summary"]["cb2_hierarchy_count"], 7)
         self.assertEqual(payload["summary"]["partition_count"], 2)
